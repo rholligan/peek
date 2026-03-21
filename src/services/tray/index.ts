@@ -4,6 +4,6 @@
  * @module services/tray
  */
 
-export { initTray, setTrayConnectedState, renderTray } from "./trayService";
+export { initTray, setTrayConnectedState, renderTray, rebuildTrayMenu } from "./trayService";
 export { applyFormat, formatSensor } from "./sensorFormatter";
 export type { FormatSensorOptions } from "./sensorFormatter";

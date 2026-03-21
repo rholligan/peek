@@ -162,7 +162,7 @@ export function startPeriodicChecks(lastUpdateCheck: string): void {
 /**
  * Stop periodic background update checks.
  */
-export function stopPeriodicChecks(): void {
+function stopPeriodicChecks(): void {
   if (checkInterval) {
     clearInterval(checkInterval);
     checkInterval = null;

@@ -2,7 +2,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import { enable as enableAutostart, disable as disableAutostart } from "@tauri-apps/plugin-autostart";
 import { loadSettings } from "./configStore";
 import { connect, entitiesToMap, getStates, onStateUpdate, onStatusChange } from "./haConnection";
-import { initTray, renderTray, setTrayConnectedState } from "./tray";
+import { initTray, renderTray, rebuildTrayMenu, setTrayConnectedState } from "./tray";
 import { onUpdateFound, startPeriodicChecks } from "./updater";
 import type { HassEntities } from "home-assistant-js-websocket";
 import { createLogger, getTrackedSensorIds, type Settings } from "@/shared";
@@ -60,10 +60,10 @@ export async function initializeApp(): Promise<void> {
     }
   });
 
-  // Rebuild tray when a background update check finds a new version
+  // Rebuild tray when a background update check finds a new version (adds "Update available" item)
   onUpdateFound(() => {
     if (currentSettings) {
-      renderTray(getStates(trackedIds), currentSettings);
+      rebuildTrayMenu(getStates(trackedIds), currentSettings);
     }
   });
 
@@ -89,8 +89,8 @@ export async function onSettingsChanged(): Promise<void> {
   currentSettings = await loadSettings();
   updateTrackedIds(currentSettings);
 
-  // Re-render tray with new settings (filtered to tracked sensors)
-  renderTray(getStates(trackedIds), currentSettings);
+  // Rebuild tray menu with new settings (sensors/URL may have changed)
+  await rebuildTrayMenu(getStates(trackedIds), currentSettings);
 
   // Only reconnect if connection settings (URL or token) changed
   const connectionChanged =
