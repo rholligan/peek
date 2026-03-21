@@ -3,8 +3,6 @@
  * @module settings/tabs/ConnectionTab
  */
 
-import { Disclosure, DisclosureButton, DisclosurePanel } from "@headlessui/react";
-import { ChevronDown } from "lucide-react";
 import { isWebUri } from "valid-url";
 import { ConnectionStatus } from "@/components/settings/ConnectionStatus";
 import { TokenInput } from "@/components/settings/TokenInput";
@@ -18,8 +16,6 @@ import {
 import { Field } from "@/components/ui/Field";
 import { Input } from "@/components/ui/Input";
 import { useAutoSaveField } from "@/hooks/useAutoSaveField";
-import { useHaConnectionStatus } from "@/hooks/useHaStates";
-import { cn } from "@/shared";
 
 /**
  * Tab for configuring the Home Assistant connection including server URL,
@@ -35,32 +31,7 @@ export function ConnectionTab() {
     debounce: 500,
   });
 
-  const { status } = useHaConnectionStatus();
-  const isConnected = status === "connected";
   const urlValid = !haUrl || !!isWebUri(haUrl);
-
-  const connectionFields = (
-    <>
-      <Field
-        label="Server URL"
-        helperText="The URL to your Home Assistant instance, including port if needed."
-        invalid={!urlValid}
-        errorText="Enter a valid URL (e.g., http://homeassistant.local:8123)"
-      >
-        <Input
-          type="url"
-          value={haUrl}
-          onChange={(e) => setHaUrl(e.target.value)}
-          placeholder="http://homeassistant.local:8123"
-        />
-      </Field>
-      <TokenInput
-        value={haToken}
-        onChange={setHaToken}
-        onClear={() => setHaToken("")}
-      />
-    </>
-  );
 
   return (
     <Card>
@@ -73,31 +44,24 @@ export function ConnectionTab() {
       <CardBody>
         <div className="space-y-6">
           <ConnectionStatus />
-
-          {isConnected ? (
-            <Disclosure>
-              {({ open }) => (
-                <>
-                  <DisclosureButton className="flex items-center gap-2 text-sm text-fg-muted cursor-pointer hover:text-white transition-colors duration-200">
-                    <ChevronDown
-                      className={cn(
-                        "h-4 w-4 transition-transform duration-200",
-                        open && "rotate-180"
-                      )}
-                    />
-                    Connection settings
-                  </DisclosureButton>
-                  <DisclosurePanel className="space-y-6 mt-4">
-                    {connectionFields}
-                  </DisclosurePanel>
-                </>
-              )}
-            </Disclosure>
-          ) : (
-            <>
-              {connectionFields}
-            </>
-          )}
+          <Field
+            label="Server URL"
+            helperText="The URL to your Home Assistant instance, including port if needed."
+            invalid={!urlValid}
+            errorText="Enter a valid URL (e.g., http://homeassistant.local:8123)"
+          >
+            <Input
+              type="url"
+              value={haUrl}
+              onChange={(e) => setHaUrl(e.target.value)}
+              placeholder="http://homeassistant.local:8123"
+            />
+          </Field>
+          <TokenInput
+            value={haToken}
+            onChange={setHaToken}
+            onClear={() => setHaToken("")}
+          />
         </div>
       </CardBody>
     </Card>
