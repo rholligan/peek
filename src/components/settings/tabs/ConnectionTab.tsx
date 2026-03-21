@@ -45,13 +45,13 @@ export function ConnectionTab() {
         label="Server URL"
         helperText="The URL to your Home Assistant instance, including port if needed."
         invalid={!urlValid}
-        errorText="Enter a valid URL (e.g., https://homeassistant.local:8123)"
+        errorText="Enter a valid URL (e.g., http://homeassistant.local:8123)"
       >
         <Input
           type="url"
           value={haUrl}
           onChange={(e) => setHaUrl(e.target.value)}
-          placeholder="https://homeassistant.local:8123"
+          placeholder="http://homeassistant.local:8123"
         />
       </Field>
       <TokenInput
