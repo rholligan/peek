@@ -6,13 +6,15 @@
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
 import { AboutTab } from "@/components/settings/tabs/AboutTab";
 import { AppearanceTab } from "@/components/settings/tabs/AppearanceTab";
-import { GeneralTab } from "@/components/settings/tabs/GeneralTab";
+import { ConnectionTab } from "@/components/settings/tabs/ConnectionTab";
 import { SensorsTab } from "@/components/settings/tabs/SensorsTab";
+import { SystemTab } from "@/components/settings/tabs/SystemTab";
 import { cn } from "@/shared";
 
 /** Available settings tabs */
 const TABS = [
-  { id: "general", label: "General", Component: GeneralTab },
+  { id: "connection", label: "Connection", Component: ConnectionTab },
+  { id: "system", label: "System", Component: SystemTab },
   { id: "sensors", label: "Sensors", Component: SensorsTab },
   { id: "appearance", label: "Appearance", Component: AppearanceTab },
   { id: "about", label: "About", Component: AboutTab },
