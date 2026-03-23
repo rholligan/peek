@@ -58,10 +58,11 @@ export function AppearanceTab() {
           </CardDescription>
         </CardHeader>
         <CardBody>
-          <div className="space-y-6">
+          <div className="space-y-4">
             <Field
               label="Sensor separator"
               helperText="Character displayed between sensors in the menu bar."
+              orientation="horizontal"
             >
               <Select
                 aria-label="Sensor separator"

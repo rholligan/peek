@@ -17,7 +17,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           ref={ref}
           data-slot="control"
           className={cn(
-            "flex h-9 w-full appearance-none rounded-lg border border-border bg-bg",
+            "flex h-9 w-full appearance-none rounded-lg border border-border-subtle bg-bg",
             "px-3 py-1 pr-9 text-sm transition-colors duration-200",
             "focus:outline-none focus:ring-2 focus:ring-blue-500",
             "disabled:cursor-not-allowed disabled:opacity-50",

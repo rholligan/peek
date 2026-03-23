@@ -35,7 +35,7 @@ export function SystemTab() {
         </CardDescription>
       </CardHeader>
       <CardBody>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <Field
             label="Start at login"
             helperText="Automatically launch the application when you log in."
@@ -53,6 +53,7 @@ export function SystemTab() {
           <Field
             label="Theme"
             helperText="Select the color scheme used across the application. System matches your macOS appearance."
+            orientation="horizontal"
           >
             <Select
               aria-label="Theme"

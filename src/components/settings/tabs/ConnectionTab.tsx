@@ -42,7 +42,7 @@ export function ConnectionTab() {
         </CardDescription>
       </CardHeader>
       <CardBody>
-        <div className="space-y-6">
+        <div className="space-y-4">
           <ConnectionStatus />
           <Field
             label="Server URL"
