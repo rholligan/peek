@@ -45,6 +45,7 @@ export const DEFAULT_SETTINGS: Settings = {
   dropdownFormat: '{name}: {value}',
   menuBarSeparator: '•',
   autoStartOnLogin: false,
+  theme: 'system',
   lastUpdateCheck: '',
 };
 

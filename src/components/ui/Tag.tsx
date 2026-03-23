@@ -33,19 +33,19 @@ export function Tag({
         // Variant + color combinations
         variant === "subtle" &&
           colorPalette === "default" &&
-          "bg-neutral-700 text-neutral-300",
+          "bg-bg-emphasized text-fg-muted",
         variant === "subtle" &&
           colorPalette === "blue" &&
-          "bg-blue-950/50 text-blue-400",
+          "bg-tag-blue-bg text-tag-blue-fg",
         variant === "subtle" &&
           colorPalette === "green" &&
-          "bg-green-950/50 text-green-400",
+          "bg-tag-green-bg text-tag-green-fg",
         variant === "subtle" &&
           colorPalette === "red" &&
-          "bg-red-950/50 text-red-400",
+          "bg-bg-red-subtle text-red-500",
         variant === "subtle" &&
           colorPalette === "yellow" &&
-          "bg-yellow-950/50 text-yellow-400",
+          "bg-bg-emphasized text-yellow-500",
 
         variant === "solid" &&
           colorPalette === "default" &&

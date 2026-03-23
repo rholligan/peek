@@ -22,11 +22,11 @@ import { SEPARATOR_OPTIONS } from "@/shared/constants";
 const formatDescription = (
   <>
     Use{" "}
-    <code className="text-xs bg-neutral-800 px-1 py-0.5 rounded-lg">
+    <code className="text-xs bg-bg-muted px-1 py-0.5 rounded-lg">
       {"{name}"}
     </code>{" "}
     for the sensor name and{" "}
-    <code className="text-xs bg-neutral-800 px-1 py-0.5 rounded-lg">
+    <code className="text-xs bg-bg-muted px-1 py-0.5 rounded-lg">
       {"{value}"}
     </code>{" "}
     for the value.

@@ -42,7 +42,7 @@ export function SettingsTabs({ activeTabIndex, onTabChange }: SettingsTabsProps)
                   "flex-1 px-4 py-1.5 text-sm font-medium rounded-full transition-colors duration-200 cursor-pointer",
                   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500",
                   selected
-                    ? "bg-bg-emphasized text-white"
+                    ? "bg-bg-emphasized text-fg"
                     : "text-fg-muted hover:text-fg"
                 )
               }

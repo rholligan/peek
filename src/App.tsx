@@ -16,6 +16,7 @@ import { Provider } from "@/components/ui/Provider";
 import { Spinner } from "@/components/ui/Spinner";
 import { Toaster, toast } from "@/components/ui/Toaster";
 import { SettingsProvider } from "@/hooks/useSettings";
+import { useThemeEffect } from "@/hooks/useThemeEffect";
 import { initializeApp } from "@/services/appLifecycle";
 import { loadSettings } from "@/services/configStore";
 import { createLogger, DEFAULT_SETTINGS, type Settings } from "@/shared";
@@ -30,6 +31,8 @@ function App() {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [loading, setLoading] = useState(true);
   const [activeTabIndex, setActiveTabIndex] = useState(0);
+
+  useThemeEffect(settings.theme);
 
   const reloadFromStore = useCallback(async () => {
     try {

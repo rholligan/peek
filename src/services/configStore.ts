@@ -30,6 +30,7 @@ const configSchema = z.object({
   dropdownFormat: z.string().optional(),
   menuBarSeparator: z.string().optional(),
   autoStartOnLogin: z.boolean().optional(),
+  theme: z.enum(['system', 'light', 'dark']).optional(),
   lastUpdateCheck: z.string().optional(),
 }).catchall(z.unknown()); // Allow unknown fields for forward compatibility
 

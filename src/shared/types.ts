@@ -5,6 +5,9 @@
 
 // --- Settings Types ---
 
+/** UI color scheme preference */
+export type Theme = 'system' | 'light' | 'dark';
+
 /**
  * Application settings persisted to config.json.
  */
@@ -29,6 +32,8 @@ export interface Settings {
   menuBarSeparator: string;
   /** Whether to automatically start the app when the user logs in */
   autoStartOnLogin: boolean;
+  /** UI color scheme preference */
+  theme: Theme;
   /** ISO timestamp of the last successful update check */
   lastUpdateCheck: string;
 }

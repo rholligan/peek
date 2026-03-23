@@ -101,7 +101,7 @@ export function AboutTab() {
             ) : updateVersion ? (
               <button
                 onClick={handleInstallUpdate}
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                className="text-sm text-accent hover:text-accent/80 transition-colors cursor-pointer"
               >
                 Update to {updateVersion}
               </button>
@@ -110,14 +110,14 @@ export function AboutTab() {
             ) : error ? (
               <button
                 onClick={handleCheckForUpdates}
-                className="text-sm text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                className="text-sm text-red-500 hover:text-red-400 transition-colors cursor-pointer"
               >
                 Couldn&apos;t check for updates. Retry?
               </button>
             ) : (
               <button
                 onClick={handleCheckForUpdates}
-                className="inline-flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors cursor-pointer"
               >
                 <RefreshCw size={14} />
                 Check for updates
@@ -129,7 +129,7 @@ export function AboutTab() {
             <span className="text-sm text-fg-muted">Source code</span>
             <button
               onClick={() => openUrl(GITHUB_URL)}
-              className="text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+              className="text-sm text-accent hover:text-accent/80 transition-colors cursor-pointer"
             >
               GitHub
             </button>
