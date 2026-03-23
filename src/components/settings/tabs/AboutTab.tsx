@@ -10,9 +10,6 @@ import { useCallback, useEffect, useState } from "react";
 import appIcon from "@/assets/app-icon.png";
 import {
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardBody,
 } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
