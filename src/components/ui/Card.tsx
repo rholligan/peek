@@ -13,7 +13,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
     <div
       ref={ref}
       data-slot="card"
-      className={cn("rounded-xl bg-bg-panel shadow-xl shadow-black/5", className)}
+      className={cn("flex flex-col gap-4", className)}
       {...props}
     >
       {children}
@@ -31,7 +31,7 @@ export function CardHeader({
   ...props
 }: CardHeaderProps) {
   return (
-    <div className={cn("px-6 py-4", className)} {...props}>
+    <div className={cn("px-1", className)} {...props}>
       {children}
     </div>
   );
@@ -43,7 +43,7 @@ interface CardTitleProps extends HTMLAttributes<HTMLHeadingElement> {
 
 export function CardTitle({ className, children, ...props }: CardTitleProps) {
   return (
-    <h3 className={cn("text-base font-semibold", className)} {...props}>
+    <h3 className={cn("text-sm font-semibold", className)} {...props}>
       {children}
     </h3>
   );
@@ -71,7 +71,13 @@ interface CardBodyProps extends HTMLAttributes<HTMLDivElement> {
 
 export function CardBody({ className, children, ...props }: CardBodyProps) {
   return (
-    <div className={cn("px-6 pb-6", className)} {...props}>
+    <div
+      className={cn(
+        "rounded-xl bg-bg-panel shadow-xl shadow-black/5 px-5 py-5",
+        className
+      )}
+      {...props}
+    >
       {children}
     </div>
   );

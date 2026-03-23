@@ -69,22 +69,20 @@ export function AboutTab() {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center gap-4">
+      <CardBody>
+        <div className="flex items-center gap-4 mb-6">
           <img
             src={appIcon}
             alt="Peek"
             className="h-10 w-10 rounded-lg"
           />
           <div>
-            <CardTitle>Peek</CardTitle>
-            <CardDescription>
+            <h3 className="text-sm font-semibold">Peek</h3>
+            <p className="text-sm text-fg-muted mt-1">
               A lightweight macOS menu bar app for Home Assistant.
-            </CardDescription>
+            </p>
           </div>
         </div>
-      </CardHeader>
-      <CardBody>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-fg-muted">Installed version</span>
