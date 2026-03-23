@@ -14,9 +14,9 @@ import { cn } from "@/shared";
 /** Available settings tabs */
 const TABS = [
   { id: "connection", label: "Connection", Component: ConnectionTab },
-  { id: "system", label: "System", Component: SystemTab },
   { id: "sensors", label: "Sensors", Component: SensorsTab },
   { id: "appearance", label: "Appearance", Component: AppearanceTab },
+  { id: "system", label: "System", Component: SystemTab },
   { id: "about", label: "About", Component: AboutTab },
 ] as const;
 
