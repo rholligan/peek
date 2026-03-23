@@ -24,7 +24,7 @@ export function Switch({
         "border-2 border-transparent transition-colors duration-200",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        checked ? "bg-green-500" : "bg-neutral-600"
+        checked ? "bg-green-500" : "bg-bg"
       )}
       {...props}
     >
