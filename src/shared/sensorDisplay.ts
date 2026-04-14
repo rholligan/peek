@@ -6,6 +6,22 @@
 import type { HaEntityState } from "./types";
 
 /**
+ * Format a raw HA state string, applying HA's display precision when the state
+ * is numeric. Text states (e.g. "on", "home") are returned unchanged, as are
+ * numeric states when no precision is configured in HA's entity registry.
+ */
+export function formatStateValue(
+  state: string,
+  precision: number | undefined
+): string {
+  if (typeof precision !== "number") return state;
+  if (state.trim() === "") return state;
+  const num = Number(state);
+  if (!Number.isFinite(num)) return state;
+  return num.toFixed(precision);
+}
+
+/**
  * Display information extracted from a sensor entity.
  */
 export interface SensorDisplayInfo {
@@ -39,7 +55,7 @@ export function getSensorDisplayInfo(
   const customName = sensorNames[entityId] || "";
   const unit = haState?.attributes.unit_of_measurement as string | undefined;
   const sensorValue = haState
-    ? `${haState.state}${unit ? ` ${unit}` : ""}`
+    ? `${formatStateValue(haState.state, haState.displayPrecision)}${unit ? ` ${unit}` : ""}`
     : "—";
 
   return {

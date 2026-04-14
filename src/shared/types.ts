@@ -55,6 +55,12 @@ export interface HaEntityState {
   last_changed: string;
   /** ISO timestamp when entity was last updated (even if state unchanged) */
   last_updated: string;
+  /**
+   * Display precision from HA entity registry — user override takes priority
+   * over integration-suggested precision. Undefined for non-numeric entities
+   * or when HA has no precision configured.
+   */
+  displayPrecision?: number;
 }
 
 /**

@@ -4,7 +4,7 @@
  * @module services/tray/sensorFormatter
  */
 
-import type { HaEntityState } from "@/shared";
+import { formatStateValue, type HaEntityState } from "@/shared";
 
 /**
  * Options for formatting a sensor.
@@ -81,7 +81,7 @@ export function formatSensor(
     ? ` ${entity.attributes.unit_of_measurement}`
     : "";
 
-  const value = `${sensorState}${unit}`;
+  const value = `${formatStateValue(sensorState, entity.displayPrecision)}${unit}`;
   return format ? applyFormat(format, label, value) : `${label}: ${value}`;
 }
 

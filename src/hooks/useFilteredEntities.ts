@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { HaEntityState } from "@/shared";
+import { formatStateValue, type HaEntityState } from "@/shared";
 
 /**
  * Entity option for the sensor picker dropdown.
@@ -33,7 +33,7 @@ export function useFilteredEntities(
     const result: EntityOption[] = [];
     for (const [entityId, state] of states) {
       const unit = (state.attributes.unit_of_measurement as string) ?? "";
-      const value = state.state;
+      const value = formatStateValue(state.state, state.displayPrecision);
       const displayValue = unit ? `${value} ${unit}` : value;
       result.push({
         entityId,
