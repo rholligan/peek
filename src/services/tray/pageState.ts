@@ -7,6 +7,7 @@
 import type { Settings } from "@/shared";
 
 let currentPage = 0;
+let autoReturnTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Current page index (0-based). */
 export function getCurrentPage(): number {
@@ -32,6 +33,31 @@ export function advancePage(totalPages: number): void {
 /** Reset the page index to 0. */
 export function resetPage(): void {
   currentPage = 0;
+}
+
+/**
+ * Schedule an automatic return to page 0 after `minutes` of inactivity.
+ * Replaces any pending timer. No-op when `minutes <= 0` or already on page 0.
+ * @param minutes - Inactivity window before resetting.
+ * @param onFire - Invoked after the page is reset (e.g. to re-render the tray).
+ */
+export function scheduleAutoReturn(minutes: number, onFire: () => void): void {
+  clearAutoReturn();
+  if (minutes <= 0 || currentPage === 0) return;
+  autoReturnTimer = setTimeout(() => {
+    autoReturnTimer = null;
+    if (currentPage === 0) return;
+    resetPage();
+    onFire();
+  }, minutes * 60_000);
+}
+
+/** Cancel any pending auto-return timer. */
+export function clearAutoReturn(): void {
+  if (autoReturnTimer) {
+    clearTimeout(autoReturnTimer);
+    autoReturnTimer = null;
+  }
 }
 
 /**

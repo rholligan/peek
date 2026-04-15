@@ -9,11 +9,13 @@ import {
 import { connect, entitiesToMap, getStates, onStateUpdate, onStatusChange } from "./haConnection";
 import {
   advanceMenuBarPage,
+  clearMenuBarAutoReturn,
   getMenuBarPaginationInfo,
   initTray,
   rebuildTrayMenu,
   renderTray,
   resetMenuBarPage,
+  scheduleMenuBarAutoReturn,
   setTrayConnectedState,
 } from "./tray";
 import { onUpdateFound, startPeriodicChecks } from "./updater";
@@ -49,13 +51,28 @@ function paginationInputsChanged(prev: Settings | null, next: Settings): boolean
   );
 }
 
-/** Global-shortcut callback: advance to the next page and re-render the tray. */
+function autoReturnInputsChanged(prev: Settings | null, next: Settings): boolean {
+  if (!prev) return true;
+  return (
+    prev.menuBarAutoReturnEnabled !== next.menuBarAutoReturnEnabled ||
+    prev.menuBarAutoReturnMinutes !== next.menuBarAutoReturnMinutes
+  );
+}
+
 function cycleMenuBarPage(): void {
   if (!currentSettings) return;
   const info = getMenuBarPaginationInfo(currentSettings);
   if (!info) return;
   advanceMenuBarPage(info.totalPages);
   renderTray(getStates(trackedIds), currentSettings);
+
+  if (currentSettings.menuBarAutoReturnEnabled) {
+    scheduleMenuBarAutoReturn(currentSettings.menuBarAutoReturnMinutes, () => {
+      if (currentSettings) renderTray(getStates(trackedIds), currentSettings);
+    });
+  } else {
+    clearMenuBarAutoReturn();
+  }
 }
 
 /**
@@ -135,6 +152,11 @@ export async function onSettingsChanged(): Promise<void> {
   // user isn't stranded on a page that no longer exists.
   if (paginationInputsChanged(previousSettings, currentSettings)) {
     resetMenuBarPage();
+    clearMenuBarAutoReturn();
+  } else if (autoReturnInputsChanged(previousSettings, currentSettings)) {
+    // Drop any pending timer so the new enabled/minutes value takes effect on
+    // the next cycle rather than honoring the previous schedule.
+    clearMenuBarAutoReturn();
   }
 
   // Rebuild tray menu with new settings (sensors/URL may have changed)

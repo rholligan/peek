@@ -36,6 +36,10 @@ export interface Settings {
   menuBarSensorsPerPage: number;
   /** Global shortcut accelerator for cycling menu bar pages (Tauri format, empty = disabled) */
   menuBarCycleShortcut: string;
+  /** Whether to automatically return to the first page after a period of inactivity */
+  menuBarAutoReturnEnabled: boolean;
+  /** Minutes of inactivity before returning to the first page (>= 1) */
+  menuBarAutoReturnMinutes: number;
   /** Whether to automatically start the app when the user logs in */
   autoStartOnLogin: boolean;
   /** UI color scheme preference */

@@ -11,4 +11,6 @@ export {
   resetPage as resetMenuBarPage,
   getPaginationInfo as getMenuBarPaginationInfo,
   isPaginationActive as isMenuBarPaginationActive,
+  scheduleAutoReturn as scheduleMenuBarAutoReturn,
+  clearAutoReturn as clearMenuBarAutoReturn,
 } from "./pageState";

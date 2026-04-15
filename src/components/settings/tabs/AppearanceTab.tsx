@@ -3,7 +3,6 @@
  * @module settings/tabs/AppearanceTab
  */
 
-import { ChevronDown, ChevronUp } from "lucide-react";
 import { FormatInput } from "@/components/settings/FormatInput";
 import {
   Card,
@@ -13,7 +12,7 @@ import {
   CardBody,
 } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
-import { Input } from "@/components/ui/Input";
+import { NumberStepperInput } from "@/components/ui/NumberStepperInput";
 import { Select } from "@/components/ui/Select";
 import { Separator } from "@/components/ui/Separator";
 import { ShortcutInput } from "@/components/ui/ShortcutInput";
@@ -28,13 +27,9 @@ import { SEPARATOR_OPTIONS } from "@/shared/constants";
 
 const SENSORS_PER_PAGE_MIN = 1;
 const SENSORS_PER_PAGE_MAX = 10;
+const AUTO_RETURN_MINUTES_MIN = 1;
+const AUTO_RETURN_MINUTES_MAX = 120;
 
-function clampSensorsPerPage(n: number): number {
-  if (!Number.isFinite(n)) return SENSORS_PER_PAGE_MIN;
-  return Math.max(SENSORS_PER_PAGE_MIN, Math.min(SENSORS_PER_PAGE_MAX, Math.floor(n)));
-}
-
-/** Reusable description for format template inputs */
 const formatDescription = (
   <>
     Use{" "}
@@ -68,6 +63,10 @@ export function AppearanceTab() {
     useAutoSaveField({ field: "menuBarSensorsPerPage", debounce: 500 });
   const { value: cycleShortcut, onChange: setCycleShortcut } =
     useAutoSaveField({ field: "menuBarCycleShortcut", debounce: 0 });
+  const { value: autoReturnEnabled, onChange: setAutoReturnEnabled } =
+    useAutoSaveField({ field: "menuBarAutoReturnEnabled", debounce: 0 });
+  const { value: autoReturnMinutes, onChange: setAutoReturnMinutes } =
+    useAutoSaveField({ field: "menuBarAutoReturnMinutes", debounce: 500 });
 
   return (
     <>
@@ -132,49 +131,14 @@ export function AppearanceTab() {
               helperText="Maximum sensors shown per page. Some may be trimmed if they don't fit in the available menu bar space."
               orientation="horizontal"
             >
-              <div className="relative inline-flex w-20">
-                <Input
-                  type="number"
-                  min={SENSORS_PER_PAGE_MIN}
-                  max={SENSORS_PER_PAGE_MAX}
-                  value={sensorsPerPage}
-                  onChange={(e) => {
-                    const parsed = Number(e.target.value);
-                    if (!Number.isFinite(parsed)) return;
-                    setSensorsPerPage(clampSensorsPerPage(parsed));
-                  }}
-                  disabled={!paginationEnabled}
-                  aria-label="Sensors per page"
-                  className={
-                    "w-full pr-9 " +
-                    "[&::-webkit-inner-spin-button]:appearance-none " +
-                    "[&::-webkit-outer-spin-button]:appearance-none " +
-                    "[appearance:textfield]"
-                  }
-                />
-                <div className="pointer-events-none absolute inset-y-0 right-3 flex flex-col justify-center">
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    aria-label="Increase"
-                    disabled={!paginationEnabled || sensorsPerPage >= SENSORS_PER_PAGE_MAX}
-                    onClick={() => setSensorsPerPage(clampSensorsPerPage(sensorsPerPage + 1))}
-                    className="pointer-events-auto flex h-3 items-center text-fg-muted hover:text-fg disabled:opacity-40 disabled:hover:text-fg-muted"
-                  >
-                    <ChevronUp className="h-3 w-3" />
-                  </button>
-                  <button
-                    type="button"
-                    tabIndex={-1}
-                    aria-label="Decrease"
-                    disabled={!paginationEnabled || sensorsPerPage <= SENSORS_PER_PAGE_MIN}
-                    onClick={() => setSensorsPerPage(clampSensorsPerPage(sensorsPerPage - 1))}
-                    className="pointer-events-auto flex h-3 items-center text-fg-muted hover:text-fg disabled:opacity-40 disabled:hover:text-fg-muted"
-                  >
-                    <ChevronDown className="h-3 w-3" />
-                  </button>
-                </div>
-              </div>
+              <NumberStepperInput
+                value={sensorsPerPage}
+                onChange={setSensorsPerPage}
+                min={SENSORS_PER_PAGE_MIN}
+                max={SENSORS_PER_PAGE_MAX}
+                disabled={!paginationEnabled}
+                ariaLabel="Sensors per page"
+              />
             </Field>
 
             <Separator />
@@ -194,6 +158,38 @@ export function AppearanceTab() {
                   if (rec) void unregisterMenuBarCycleShortcut();
                   else void syncMenuBarCycleShortcut();
                 }}
+              />
+            </Field>
+
+            <Separator />
+
+            <Field
+              label="Auto-return to first page"
+              helperText="Return to the first page when the shortcut hasn't been pressed for a while."
+              orientation="horizontal"
+            >
+              <Switch
+                checked={autoReturnEnabled}
+                onCheckedChange={setAutoReturnEnabled}
+                disabled={!paginationEnabled}
+                aria-label="Auto-return to first page"
+              />
+            </Field>
+
+            <Separator />
+
+            <Field
+              label="Return after"
+              helperText="Minutes to wait after the last shortcut press."
+              orientation="horizontal"
+            >
+              <NumberStepperInput
+                value={autoReturnMinutes}
+                onChange={setAutoReturnMinutes}
+                min={AUTO_RETURN_MINUTES_MIN}
+                max={AUTO_RETURN_MINUTES_MAX}
+                disabled={!paginationEnabled || !autoReturnEnabled}
+                ariaLabel="Auto-return minutes"
               />
             </Field>
           </div>
