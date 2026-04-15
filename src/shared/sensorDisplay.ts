@@ -9,6 +9,8 @@ import type { HaEntityState } from "./types";
  * Format a raw HA state string, applying HA's display precision when the state
  * is numeric. Text states (e.g. "on", "home") are returned unchanged, as are
  * numeric states when no precision is configured in HA's entity registry.
+ * @param state - The raw state string from Home Assistant.
+ * @param precision - Digits after the decimal point, or undefined to pass through.
  */
 export function formatStateValue(
   state: string,

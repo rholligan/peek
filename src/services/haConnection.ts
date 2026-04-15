@@ -315,6 +315,7 @@ interface EntityRegistryDisplayResult {
  * Rebuild the display-precision map from the HA entity registry.
  * HA resolves the user-set `display_precision` override first, then the
  * integration's `suggested_display_precision`, and sends the result as `dp`.
+ * @param connection - Active HA websocket connection.
  */
 async function refreshDisplayPrecision(connection: Connection): Promise<void> {
   const state = getState();
@@ -336,6 +337,7 @@ async function refreshDisplayPrecision(connection: Connection): Promise<void> {
 
 /**
  * Subscribe to entity registry updates so precision changes propagate live.
+ * @param connection - Active HA websocket connection.
  */
 async function setupRegistrySubscription(connection: Connection): Promise<void> {
   const state = getState();

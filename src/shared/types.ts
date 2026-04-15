@@ -30,6 +30,12 @@ export interface Settings {
   dropdownFormat: string;
   /** Separator between sensors in the menu bar (empty string = space) */
   menuBarSeparator: string;
+  /** Whether menu bar sensors are split into pages (cycled with a shortcut) */
+  menuBarPaginationEnabled: boolean;
+  /** Number of sensors shown per page when pagination is enabled (>= 1) */
+  menuBarSensorsPerPage: number;
+  /** Global shortcut accelerator for cycling menu bar pages (Tauri format, empty = disabled) */
+  menuBarCycleShortcut: string;
   /** Whether to automatically start the app when the user logs in */
   autoStartOnLogin: boolean;
   /** UI color scheme preference */
