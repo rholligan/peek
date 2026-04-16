@@ -44,7 +44,13 @@ export const DEFAULT_SETTINGS: Settings = {
   menuBarFormat: '{name} {value}',
   dropdownFormat: '{name}: {value}',
   menuBarSeparator: '•',
+  menuBarPaginationEnabled: false,
+  menuBarSensorsPerPage: 3,
+  menuBarCycleShortcut: 'CmdOrCtrl+Alt+P',
+  menuBarAutoReturnEnabled: false,
+  menuBarAutoReturnMinutes: 5,
   autoStartOnLogin: false,
+  theme: 'system',
   lastUpdateCheck: '',
 };
 

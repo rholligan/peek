@@ -50,7 +50,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
           variant === "ghost" && "hover:bg-bg-emphasized/60 text-fg-muted hover:text-fg",
           variant === "ghost" &&
             colorPalette === "red" &&
-            "text-red-500 hover:bg-red-950 hover:text-red-400",
+            "text-red-500 hover:bg-bg-red-subtle hover:text-red-400",
 
           // Cursor for drag handle
           "cursor-pointer",

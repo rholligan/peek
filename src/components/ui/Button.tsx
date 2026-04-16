@@ -52,12 +52,12 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           variant === "outline" && "border border-border hover:bg-bg-emphasized/60",
           variant === "outline" &&
             colorPalette === "red" &&
-            "border-red-600 text-red-500 hover:bg-red-950",
+            "border-red-600 text-red-500 hover:bg-bg-red-subtle",
 
           variant === "ghost" && "hover:bg-bg-emphasized/60",
           variant === "ghost" &&
             colorPalette === "red" &&
-            "text-red-500 hover:bg-red-950 hover:text-red-400",
+            "text-red-500 hover:bg-bg-red-subtle hover:text-red-400",
 
           variant === "plain" && "underline hover:no-underline",
           variant === "plain" && colorPalette === "red" && "text-red-500",

@@ -6,7 +6,7 @@ export { toast };
 export function Toaster() {
   return (
     <SonnerToaster
-      theme="dark"
+      theme="system"
       position="bottom-center"
       toastOptions={{
         unstyled: true,

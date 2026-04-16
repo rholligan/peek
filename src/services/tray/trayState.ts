@@ -5,11 +5,9 @@
 
 import type {
   HaConnectionStatus,
-  HaEntityState,
   Settings,
 } from "../../shared/types";
-import type { Resource } from "@tauri-apps/api/core";
-import type { Menu } from "@tauri-apps/api/menu";
+import type { Menu, MenuItem } from "@tauri-apps/api/menu";
 import type { TrayIcon } from "@tauri-apps/api/tray";
 
 /**
@@ -24,28 +22,20 @@ export interface TrayState {
   pendingTitleUpdate: Promise<void>;
   /** Last title set (for deduplication) */
   latestTitle: string | null;
-  /** Whether a menu rebuild is currently in progress */
-  menuRebuildInProgress: boolean;
   /** Current connection status */
   status: HaConnectionStatus;
   /** Current error message */
   error: string | null;
-  /** Latest render inputs - prevents stale data from closure capture */
-  latestRenderInputs: { states: Map<string, HaEntityState>; settings: Settings } | null;
-  /** Flag for coalescing queue pattern - ensures final update is never missed */
-  renderRequested: boolean;
-  /** Tracks consecutive tray errors to prevent spam */
-  consecutiveErrors: number;
+  /** Latest settings - used for text updates when only states change */
+  latestSettings: Settings | null;
   /** Prevents double-click on reconnect button */
   reconnectInProgress: boolean;
-  /** Current menu instance for cleanup (Rust resource) */
+  /** Current menu instance (Rust resource) */
   currentMenu: Menu | null;
-  /** Current menu items for cleanup (Rust resources) */
-  currentMenuItems: Resource[];
-  /** Old resources queued for deferred cleanup (closed at start of next render) */
-  pendingCleanup: Resource[];
-  /** Fingerprint of last menu content to skip unnecessary setMenu() calls */
-  latestMenuFingerprint: string;
+  /** References to menu items by ID for in-place setText() updates */
+  itemRefs: Map<string, MenuItem>;
+  /** Last-known text per item ID — skip no-op setText() calls */
+  itemTexts: Map<string, string>;
 }
 
 /**
@@ -57,19 +47,13 @@ export function createInitialState(): TrayState {
     iconHidden: false,
     pendingTitleUpdate: Promise.resolve(),
     latestTitle: null,
-    menuRebuildInProgress: false,
     status: "disconnected",
     error: null,
-    latestRenderInputs: null,
-    renderRequested: false,
-    consecutiveErrors: 0,
+    latestSettings: null,
     reconnectInProgress: false,
     currentMenu: null,
-    currentMenuItems: [],
-    pendingCleanup: [],
-    latestMenuFingerprint: "",
+    itemRefs: new Map(),
+    itemTexts: new Map(),
   };
 }
 
-/** Maximum consecutive errors before disabling tray */
-export const MAX_CONSECUTIVE_ERRORS = 5;

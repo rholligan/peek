@@ -84,14 +84,14 @@ export function TokenInput({
             type="button"
             onClick={() => setShowConfirm(true)}
             disabled={disabled}
-            className="self-start p-0 h-auto text-sm text-red-500 underline hover:no-underline disabled:opacity-50"
+            className="cursor-pointer self-start p-0 h-auto text-sm text-red-500 underline hover:no-underline disabled:opacity-50"
           >
             Replace token
           </button>
           <ConfirmModal
             isOpen={showConfirm}
             title="Replace token?"
-            message="This will disconnect from Home Assistant. You'll need to enter a new token to reconnect."
+            message="This will close your active Home Assistant connection. You'll need to enter a new token to reconnect."
             confirmLabel="Replace"
             onConfirm={handleReplaceToken}
             onCancel={() => setShowConfirm(false)}

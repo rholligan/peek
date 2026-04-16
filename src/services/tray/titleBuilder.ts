@@ -3,6 +3,7 @@
  * @module services/tray/titleBuilder
  */
 
+import { getPagedSensors } from "./pageState";
 import { formatSensor } from "./sensorFormatter";
 import { UI_LIMITS, type HaEntityState, type HaConnectionStatus, type Settings } from "@/shared";
 
@@ -50,7 +51,7 @@ export function buildMenuBarTitle(
   let totalLength = 0;
   let truncated = false;
 
-  for (const entityId of settings.menuBarSensors) {
+  for (const entityId of getPagedSensors(settings)) {
     const entity = states.get(entityId);
     const customName = settings.menuBarSensorNames?.[entityId];
     const formatted = formatSensor(

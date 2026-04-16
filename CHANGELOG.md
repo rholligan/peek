@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-04-15
+
+### Added
+
+- Light mode support with a theme selector.
+- Menu bar sensor pagination with a global shortcut to cycle between pages.
+- Auto-return to the first menu bar page after a period of inactivity.
+
+### Changed
+
+- Replaced pill tabs with a vertical sidebar navigation.
+- Split the General settings tab into separate Connection and System tabs, with System positioned just before About.
+- Redesigned card layout so headers sit outside the card body background.
+- Inputs, selects, and the switch off state now use the main background for a cleaner look.
+- Refined form field layout and styling.
+- Removed the accordion from connection settings for a flatter layout.
+- Updated the server URL placeholder and error text to use `http`.
+- Updated the token replace button cursor and confirmation message.
+- Sensor values now respect the Home Assistant display precision.
+- Simplified tray sensor updates for improved performance.
+
 ## [1.0.2] - 2026-03-19
 
 ### Changed
@@ -35,6 +56,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Initial release.
 
+[1.1.0]: https://github.com/tiagonoronha/peek/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/tiagonoronha/peek/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/tiagonoronha/peek/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/tiagonoronha/peek/releases/tag/v1.0.0

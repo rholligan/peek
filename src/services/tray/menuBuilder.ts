@@ -9,7 +9,6 @@ import { openUrl } from "@tauri-apps/plugin-opener";
 import { exit } from "@tauri-apps/plugin-process";
 import { formatSensor } from "./sensorFormatter";
 import type { TrayState } from "./trayState";
-import type { Resource } from "@tauri-apps/api/core";
 import { hasCredentials, retryConnection } from "@/services/haConnection";
 import { downloadAndInstall, getUpdateVersion, isUpdateAvailable } from "@/services/updater";
 import { formatConnectionStatus, type HaEntityState, type Settings } from "@/shared";
@@ -17,7 +16,7 @@ import { formatConnectionStatus, type HaEntityState, type Settings } from "@/sha
 /** Result from buildMenu containing the menu and all items for resource tracking */
 interface BuildMenuResult {
   menu: Menu;
-  items: Resource[];
+  items: (MenuItem | PredefinedMenuItem)[];
 }
 
 const mainWindow = getCurrentWindow();

@@ -1,8 +1,23 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { enable as enableAutostart, disable as disableAutostart } from "@tauri-apps/plugin-autostart";
 import { loadSettings } from "./configStore";
+import {
+  configureMenuBarCycleShortcut,
+  syncMenuBarCycleShortcut,
+  unregisterMenuBarCycleShortcut,
+} from "./globalShortcut";
 import { connect, entitiesToMap, getStates, onStateUpdate, onStatusChange } from "./haConnection";
-import { initTray, renderTray, setTrayConnectedState } from "./tray";
+import {
+  advanceMenuBarPage,
+  clearMenuBarAutoReturn,
+  getMenuBarPaginationInfo,
+  initTray,
+  rebuildTrayMenu,
+  renderTray,
+  resetMenuBarPage,
+  scheduleMenuBarAutoReturn,
+  setTrayConnectedState,
+} from "./tray";
 import { onUpdateFound, startPeriodicChecks } from "./updater";
 import type { HassEntities } from "home-assistant-js-websocket";
 import { createLogger, getTrackedSensorIds, type Settings } from "@/shared";
@@ -18,6 +33,46 @@ let trackedIds: string[] = [];
 
 function updateTrackedIds(settings: Settings): void {
   trackedIds = getTrackedSensorIds(settings);
+}
+
+function arraysEqual(a: readonly string[], b: readonly string[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+  return true;
+}
+
+function paginationInputsChanged(prev: Settings | null, next: Settings): boolean {
+  if (!prev) return true;
+  return (
+    prev.menuBarPaginationEnabled !== next.menuBarPaginationEnabled ||
+    prev.menuBarSensorsPerPage !== next.menuBarSensorsPerPage ||
+    !arraysEqual(prev.menuBarSensors, next.menuBarSensors)
+  );
+}
+
+function autoReturnInputsChanged(prev: Settings | null, next: Settings): boolean {
+  if (!prev) return true;
+  return (
+    prev.menuBarAutoReturnEnabled !== next.menuBarAutoReturnEnabled ||
+    prev.menuBarAutoReturnMinutes !== next.menuBarAutoReturnMinutes
+  );
+}
+
+function cycleMenuBarPage(): void {
+  if (!currentSettings) return;
+  const info = getMenuBarPaginationInfo(currentSettings);
+  if (!info) return;
+  advanceMenuBarPage(info.totalPages);
+  renderTray(getStates(trackedIds), currentSettings);
+
+  if (currentSettings.menuBarAutoReturnEnabled) {
+    scheduleMenuBarAutoReturn(currentSettings.menuBarAutoReturnMinutes, () => {
+      if (currentSettings) renderTray(getStates(trackedIds), currentSettings);
+    });
+  } else {
+    clearMenuBarAutoReturn();
+  }
 }
 
 /**
@@ -45,6 +100,7 @@ export async function initializeApp(): Promise<void> {
   // Clean up previous subscriptions (e.g. HMR re-init)
   unsubscribeStatus?.();
   unsubscribeStates?.();
+  await unregisterMenuBarCycleShortcut();
 
   // Wire connection status changes to tray renderer
   unsubscribeStatus = onStatusChange((status, error) => {
@@ -60,10 +116,10 @@ export async function initializeApp(): Promise<void> {
     }
   });
 
-  // Rebuild tray when a background update check finds a new version
+  // Rebuild tray when a background update check finds a new version (adds "Update available" item)
   onUpdateFound(() => {
     if (currentSettings) {
-      renderTray(getStates(trackedIds), currentSettings);
+      rebuildTrayMenu(getStates(trackedIds), currentSettings);
     }
   });
 
@@ -79,6 +135,9 @@ export async function initializeApp(): Promise<void> {
 
   // Start periodic update checks (skips if checked recently)
   startPeriodicChecks(currentSettings.lastUpdateCheck);
+
+  configureMenuBarCycleShortcut(currentSettings, cycleMenuBarPage);
+  await syncMenuBarCycleShortcut();
 }
 
 /**
@@ -89,8 +148,22 @@ export async function onSettingsChanged(): Promise<void> {
   currentSettings = await loadSettings();
   updateTrackedIds(currentSettings);
 
-  // Re-render tray with new settings (filtered to tracked sensors)
-  renderTray(getStates(trackedIds), currentSettings);
+  // Reset paging when the sensor list or pagination settings change so the
+  // user isn't stranded on a page that no longer exists.
+  if (paginationInputsChanged(previousSettings, currentSettings)) {
+    resetMenuBarPage();
+    clearMenuBarAutoReturn();
+  } else if (autoReturnInputsChanged(previousSettings, currentSettings)) {
+    // Drop any pending timer so the new enabled/minutes value takes effect on
+    // the next cycle rather than honoring the previous schedule.
+    clearMenuBarAutoReturn();
+  }
+
+  // Rebuild tray menu with new settings (sensors/URL may have changed)
+  await rebuildTrayMenu(getStates(trackedIds), currentSettings);
+
+  configureMenuBarCycleShortcut(currentSettings, cycleMenuBarPage);
+  await syncMenuBarCycleShortcut();
 
   // Only reconnect if connection settings (URL or token) changed
   const connectionChanged =

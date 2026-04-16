@@ -18,6 +18,7 @@ pub fn run() {
         ))
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         .invoke_handler(tauri::generate_handler![log_to_terminal])
         .setup(|app| {
             // Hide dock icon on macOS — this is a tray-only app

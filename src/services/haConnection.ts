@@ -65,6 +65,8 @@ interface HaConnectionState {
   status: HaConnectionStatus;
   lastError: string | null;
   unsubscribeEntities: (() => void) | null;
+  unsubscribeRegistry: (() => void) | null;
+  displayPrecision: Map<string, number>;
   emitter: Emitter<HaConnectionEvents>;
   wakeIntervalId: ReturnType<typeof setInterval> | null;
   credentials: { url: string; token: string } | null;
@@ -84,6 +86,8 @@ function getState(): HaConnectionState {
       status: "disconnected",
       lastError: null,
       unsubscribeEntities: null,
+      unsubscribeRegistry: null,
+      displayPrecision: new Map(),
       emitter: mitt<HaConnectionEvents>(),
       wakeIntervalId: null,
       credentials: null,
@@ -104,6 +108,7 @@ export function entitiesToMap(
   hassEntities: HassEntities,
   filterIds?: string[]
 ): Map<string, HaEntityState> {
+  const precisionMap = getState().displayPrecision;
   const map = new Map<string, HaEntityState>();
   if (filterIds) {
     for (const id of filterIds) {
@@ -115,6 +120,7 @@ export function entitiesToMap(
           attributes: entity.attributes,
           last_changed: entity.last_changed,
           last_updated: entity.last_updated,
+          displayPrecision: precisionMap.get(id),
         });
       }
     }
@@ -126,6 +132,7 @@ export function entitiesToMap(
         attributes: entity.attributes,
         last_changed: entity.last_changed,
         last_updated: entity.last_updated,
+        displayPrecision: precisionMap.get(entityId),
       });
     }
   }
@@ -191,12 +198,17 @@ function closeConnection(): void {
     state.unsubscribeEntities();
     state.unsubscribeEntities = null;
   }
+  if (state.unsubscribeRegistry) {
+    state.unsubscribeRegistry();
+    state.unsubscribeRegistry = null;
+  }
   removeConnectionListeners();
   if (state.connection) {
     state.connection.close();
     state.connection = null;
   }
   state.entities = {};
+  state.displayPrecision.clear();
 }
 
 /**
@@ -287,6 +299,64 @@ function setupEntitySubscription(connection: Connection): void {
 }
 
 /**
+ * Entry in the response from `config/entity_registry/list_for_display`.
+ * Only `ei` (entity_id) and `dp` (display precision) are relevant here.
+ */
+interface EntityRegistryDisplayEntry {
+  ei: string;
+  dp?: number;
+}
+
+interface EntityRegistryDisplayResult {
+  entities: EntityRegistryDisplayEntry[];
+}
+
+/**
+ * Rebuild the display-precision map from the HA entity registry.
+ * HA resolves the user-set `display_precision` override first, then the
+ * integration's `suggested_display_precision`, and sends the result as `dp`.
+ * @param connection - Active HA websocket connection.
+ */
+async function refreshDisplayPrecision(connection: Connection): Promise<void> {
+  const state = getState();
+  try {
+    const result = await connection.sendMessagePromise<EntityRegistryDisplayResult>({
+      type: "config/entity_registry/list_for_display",
+    });
+    const map = new Map<string, number>();
+    for (const entry of result.entities) {
+      if (typeof entry.dp === "number") map.set(entry.ei, entry.dp);
+    }
+    state.displayPrecision = map;
+    log(`Loaded display precision for ${map.size} entities`);
+    notifyStateUpdate();
+  } catch (err) {
+    logError("Failed to load entity registry display:", err);
+  }
+}
+
+/**
+ * Subscribe to entity registry updates so precision changes propagate live.
+ * @param connection - Active HA websocket connection.
+ */
+async function setupRegistrySubscription(connection: Connection): Promise<void> {
+  const state = getState();
+  try {
+    await refreshDisplayPrecision(connection);
+    const unsubscribe = await connection.subscribeEvents(() => {
+      refreshDisplayPrecision(connection).catch(() => {
+        // Error already logged in refreshDisplayPrecision
+      });
+    }, "entity_registry_updated");
+    state.unsubscribeRegistry = () => {
+      unsubscribe().catch(() => { /* ignore */ });
+    };
+  } catch (err) {
+    logError("Entity registry subscription unavailable; precision disabled:", err);
+  }
+}
+
+/**
  * Establish a WebSocket connection to Home Assistant.
  *
  * Normalizes the URL, authenticates with the provided token, sets up
@@ -323,6 +393,7 @@ export async function connect(url: string, token: string): Promise<void> {
 
     setupConnectionListeners(state.connection);
     setupEntitySubscription(state.connection);
+    await setupRegistrySubscription(state.connection);
 
     // Start wake detection for automatic reconnection after sleep
     startWakeDetection();
@@ -360,12 +431,17 @@ export function disconnect(): void {
     state.unsubscribeEntities();
     state.unsubscribeEntities = null;
   }
+  if (state.unsubscribeRegistry) {
+    state.unsubscribeRegistry();
+    state.unsubscribeRegistry = null;
+  }
   removeConnectionListeners();
   if (state.connection) {
     state.connection.close();
     state.connection = null;
   }
   state.entities = {};
+  state.displayPrecision.clear();
   state.credentials = null;
   setStatus("disconnected");
 }

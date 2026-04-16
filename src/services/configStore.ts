@@ -29,7 +29,10 @@ const configSchema = z.object({
   menuBarFormat: z.string().optional(),
   dropdownFormat: z.string().optional(),
   menuBarSeparator: z.string().optional(),
+  menuBarAutoReturnEnabled: z.boolean().optional(),
+  menuBarAutoReturnMinutes: z.number().int().min(1).max(120).optional(),
   autoStartOnLogin: z.boolean().optional(),
+  theme: z.enum(['system', 'light', 'dark']).optional(),
   lastUpdateCheck: z.string().optional(),
 }).catchall(z.unknown()); // Allow unknown fields for forward compatibility
 

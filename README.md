@@ -10,12 +10,14 @@ A macOS menu bar app for monitoring Home Assistant sensors without opening a bro
 
 ## Features
 
-- **Menu bar display** - Show selected sensors directly in the menu bar with customizable format and separators
+- **Menu bar display** - Display selected sensors in the menu bar with custom formatting and separators. Group into pages, cycle via a global shortcut, and auto-reset after inactivity
 - **Dropdown menu** - Show additional sensors in the dropdown menu
 - **Real-time updates** - Live sensor values via WebSocket with automatic reconnection
+- **Display precision** - Honors the display precision configured in Home Assistant for each sensor
 - **Custom naming** - Override sensor names for a more personalized display
 - **Configurable formatting** - Templates for how sensor values appear (e.g., `{name}: {value}`)
 - **Drag & drop** - Reorder sensors and move them between menu bar and dropdown
+- **Light & dark themes** - Pick a theme or follow the system appearance
 - **Auto-update** - Background update checks with one-click install
 - **Lightweight** - Built with Tauri 2.0 for a small footprint and native performance
 
@@ -28,7 +30,7 @@ Requires **macOS 11+** and a Home Assistant instance with a [long-lived access t
 ## Setup
 
 1. Click the Peek icon in the menu bar and open **Preferences**
-2. Enter your Home Assistant URL and access token
+2. In the **Connection** tab, enter your Home Assistant URL and access token
 3. Go to the **Sensors** tab and add the sensors you want to monitor
 
 ## Build from source

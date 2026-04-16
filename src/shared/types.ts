@@ -5,6 +5,9 @@
 
 // --- Settings Types ---
 
+/** UI color scheme preference */
+export type Theme = 'system' | 'light' | 'dark';
+
 /**
  * Application settings persisted to config.json.
  */
@@ -27,8 +30,20 @@ export interface Settings {
   dropdownFormat: string;
   /** Separator between sensors in the menu bar (empty string = space) */
   menuBarSeparator: string;
+  /** Whether menu bar sensors are split into pages (cycled with a shortcut) */
+  menuBarPaginationEnabled: boolean;
+  /** Number of sensors shown per page when pagination is enabled (>= 1) */
+  menuBarSensorsPerPage: number;
+  /** Global shortcut accelerator for cycling menu bar pages (Tauri format, empty = disabled) */
+  menuBarCycleShortcut: string;
+  /** Whether to automatically return to the first page after a period of inactivity */
+  menuBarAutoReturnEnabled: boolean;
+  /** Minutes of inactivity before returning to the first page (>= 1) */
+  menuBarAutoReturnMinutes: number;
   /** Whether to automatically start the app when the user logs in */
   autoStartOnLogin: boolean;
+  /** UI color scheme preference */
+  theme: Theme;
   /** ISO timestamp of the last successful update check */
   lastUpdateCheck: string;
 }
@@ -50,6 +65,12 @@ export interface HaEntityState {
   last_changed: string;
   /** ISO timestamp when entity was last updated (even if state unchanged) */
   last_updated: string;
+  /**
+   * Display precision from HA entity registry — user override takes priority
+   * over integration-suggested precision. Undefined for non-numeric entities
+   * or when HA has no precision configured.
+   */
+  displayPrecision?: number;
 }
 
 /**

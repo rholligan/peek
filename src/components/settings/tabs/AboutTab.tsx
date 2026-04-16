@@ -10,9 +10,6 @@ import { useCallback, useEffect, useState } from "react";
 import appIcon from "@/assets/app-icon.png";
 import {
   Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
   CardBody,
 } from "@/components/ui/Card";
 import { Spinner } from "@/components/ui/Spinner";
@@ -69,22 +66,20 @@ export function AboutTab() {
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center gap-4">
+      <CardBody>
+        <div className="flex items-center gap-4 mb-6">
           <img
             src={appIcon}
             alt="Peek"
             className="h-10 w-10 rounded-lg"
           />
           <div>
-            <CardTitle>Peek</CardTitle>
-            <CardDescription>
+            <h3 className="text-sm font-semibold">Peek</h3>
+            <p className="text-sm text-fg-muted mt-1">
               A lightweight macOS menu bar app for Home Assistant.
-            </CardDescription>
+            </p>
           </div>
         </div>
-      </CardHeader>
-      <CardBody>
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-sm text-fg-muted">Installed version</span>
@@ -101,7 +96,7 @@ export function AboutTab() {
             ) : updateVersion ? (
               <button
                 onClick={handleInstallUpdate}
-                className="text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                className="text-sm text-accent hover:text-accent/80 transition-colors cursor-pointer"
               >
                 Update to {updateVersion}
               </button>
@@ -110,14 +105,14 @@ export function AboutTab() {
             ) : error ? (
               <button
                 onClick={handleCheckForUpdates}
-                className="text-sm text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                className="text-sm text-red-500 hover:text-red-400 transition-colors cursor-pointer"
               >
                 Couldn&apos;t check for updates. Retry?
               </button>
             ) : (
               <button
                 onClick={handleCheckForUpdates}
-                className="inline-flex items-center gap-1.5 text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 text-sm text-accent hover:text-accent/80 transition-colors cursor-pointer"
               >
                 <RefreshCw size={14} />
                 Check for updates
@@ -129,7 +124,7 @@ export function AboutTab() {
             <span className="text-sm text-fg-muted">Source code</span>
             <button
               onClick={() => openUrl(GITHUB_URL)}
-              className="text-sm text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+              className="text-sm text-accent hover:text-accent/80 transition-colors cursor-pointer"
             >
               GitHub
             </button>

@@ -108,7 +108,7 @@ function CommandItem({
       className={cn(
         "relative flex cursor-pointer select-none items-center gap-2",
         "rounded-lg px-3 py-2 text-sm outline-none transition-colors duration-200",
-        "hover:bg-neutral-600/60",
+        "hover:bg-bg-emphasized/60",
         "data-[selected=true]:bg-bg-emphasized",
         "data-[disabled=true]:pointer-events-none data-[disabled=true]:opacity-50",
         className
