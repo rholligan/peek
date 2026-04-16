@@ -19,6 +19,7 @@ import { ShortcutInput } from "@/components/ui/ShortcutInput";
 import { Switch } from "@/components/ui/Switch";
 import { useAutoSaveField } from "@/hooks/useAutoSaveField";
 import {
+  probeMenuBarCycleShortcut,
   syncMenuBarCycleShortcut,
   unregisterMenuBarCycleShortcut,
 } from "@/services/globalShortcut";
@@ -158,6 +159,7 @@ export function AppearanceTab() {
                   if (rec) void unregisterMenuBarCycleShortcut();
                   else void syncMenuBarCycleShortcut();
                 }}
+                validate={probeMenuBarCycleShortcut}
               />
             </Field>
 

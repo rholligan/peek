@@ -15,6 +15,10 @@ import { createLogger, type Settings } from "@/shared";
 
 const logger = createLogger("[Shortcut]");
 
+function conflictMessage(accelerator: string): string {
+  return `Couldn't register shortcut "${accelerator}" — it may already be in use by another app.`;
+}
+
 let currentShortcut: string | null = null;
 let activeSettings: Settings | null = null;
 let activeOnCycle: (() => void) | null = null;
@@ -58,9 +62,7 @@ async function reconcile(): Promise<void> {
   } catch (err) {
     logger.error(`Failed to register "${desired}":`, err);
     currentShortcut = null;
-    toast.error(
-      `Couldn't register shortcut "${desired}" — it may already be in use by another app.`
-    );
+    toast.error(conflictMessage(desired));
   }
 }
 
@@ -92,4 +94,32 @@ export function syncMenuBarCycleShortcut(): Promise<void> {
 export function unregisterMenuBarCycleShortcut(): Promise<void> {
   syncQueue = syncQueue.then(tearDown, tearDown);
   return syncQueue;
+}
+
+/**
+ * Test whether `accelerator` can be bound right now without persisting it.
+ * Lets the settings UI surface a conflict (shortcut already in use) as an
+ * error toast instead of writing a broken value to disk and only discovering
+ * the failure on the next reconcile. Empty string is treated as valid
+ * (means "no shortcut").
+ */
+export function probeMenuBarCycleShortcut(accelerator: string): Promise<boolean> {
+  const trimmed = accelerator.trim();
+  if (!trimmed) return Promise.resolve(true);
+
+  const probe = async (): Promise<boolean> => {
+    try {
+      await register(trimmed, () => {});
+      await tearDown();
+      return true;
+    } catch (err) {
+      logger.error(`Probe register "${trimmed}" failed:`, err);
+      toast.error(conflictMessage(trimmed));
+      return false;
+    }
+  };
+
+  const next = syncQueue.then(probe, probe);
+  syncQueue = next.then(() => {}, () => {});
+  return next;
 }

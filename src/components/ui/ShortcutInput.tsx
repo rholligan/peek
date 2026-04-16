@@ -86,6 +86,13 @@ export interface ShortcutInputProps {
    * so the captured keypress isn't swallowed before the DOM sees it.
    */
   onRecordingChange?: (recording: boolean) => void;
+  /**
+   * Optional async validator invoked on a captured combo before commit.
+   * Return false to reject (the validator is responsible for surfacing
+   * its own feedback, e.g. a toast). The combo is only persisted via
+   * `onChange` when the validator returns true (or is omitted).
+   */
+  validate?: (accelerator: string) => Promise<boolean> | boolean;
 }
 
 /**
@@ -99,9 +106,11 @@ export function ShortcutInput({
   placeholder = "Click to record a shortcut",
   className,
   onRecordingChange,
+  validate,
   ...rest
 }: ShortcutInputProps) {
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const validatingRef = useRef(false);
   const [recording, setRecording] = useState(false);
 
   const beginRecording = () => {
@@ -116,7 +125,7 @@ export function ShortcutInput({
     onRecordingChange?.(false);
   };
 
-  const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+  const handleKeyDown = async (event: KeyboardEvent<HTMLButtonElement>) => {
     if (!recording) return;
     const bareKey =
       !event.metaKey && !event.ctrlKey && !event.altKey && !event.shiftKey;
@@ -144,6 +153,23 @@ export function ShortcutInput({
       endRecording();
       buttonRef.current?.blur();
       return;
+    }
+    if (validate) {
+      // Drop overlapping keydowns while a probe is in flight — without this
+      // a user mashing keys can queue several validations against the OS.
+      if (validatingRef.current) return;
+      validatingRef.current = true;
+      let ok = false;
+      try {
+        ok = await validate(result.accelerator);
+      } finally {
+        validatingRef.current = false;
+      }
+      if (!ok) {
+        endRecording();
+        buttonRef.current?.blur();
+        return;
+      }
     }
     onChange(result.accelerator);
     endRecording();
