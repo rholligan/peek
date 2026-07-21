@@ -130,7 +130,17 @@ const SensorListItem = memo(
                   <span className="text-3xs text-fg-muted pl-0.5">Press spacebar for blank title, empty to reset.</span>
                 </div>
                 <div className="flex flex-col gap-1">
-                  <label className="text-2xs text-fg-muted font-semibold uppercase tracking-wider">Format Override</label>
+                  <div className="flex justify-between items-center">
+                    <label className="text-2xs text-fg-muted font-semibold uppercase tracking-wider">Format Override</label>
+                    <a
+                      href="https://github.com/tiagonoronha/peek#features"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-3xs text-blue-500 hover:text-blue-600 transition-colors hover:underline"
+                    >
+                      View Docs
+                    </a>
+                  </div>
                   <input
                     type="text"
                     value={localFormat}
@@ -139,7 +149,36 @@ const SensorListItem = memo(
                     placeholder="Use global format"
                     className="font-medium text-sm bg-bg-panel rounded-lg px-2.5 py-1.5 border border-border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full transition-colors"
                   />
-                  <span className="text-3xs text-fg-muted pl-0.5">Supports {"{name}"} and {"{value}"} (e.g. {"{value}"}).</span>
+                  <span className="text-3xs text-fg-muted pl-0.5">
+                    Supports <code className="bg-bg-muted/50 px-1 rounded font-mono text-2xs">{"{name}"}</code> and <code className="bg-bg-muted/50 px-1 rounded font-mono text-2xs">{"{value}"}</code>.
+                  </span>
+                  <div className="flex items-center gap-1.5 flex-wrap mt-1.5 pl-0.5">
+                    <span className="text-3xs text-fg-muted font-semibold uppercase tracking-wider">Presets:</span>
+                    <button
+                      type="button"
+                      onClick={() => setLocalFormat("{value}")}
+                      className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
+                      title="Show only the value (e.g., '22°C' instead of 'Temp: 22°C')"
+                    >
+                      Value Only
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLocalFormat("{value} F")}
+                      className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
+                      title="Suffix a custom unit override (e.g., '22°C F')"
+                    >
+                      Custom Suffix
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setLocalFormat("{name} [{value}]")}
+                      className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
+                      title="Bracketed format (e.g., 'Temp [22°C]')"
+                    >
+                      Bracketed
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (
