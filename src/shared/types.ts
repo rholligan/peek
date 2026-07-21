@@ -40,6 +40,14 @@ export interface Settings {
   menuBarAutoReturnEnabled: boolean;
   /** Minutes of inactivity before returning to the first page (>= 1) */
   menuBarAutoReturnMinutes: number;
+  /** Whether to automatically cycle menu bar pages at a regular interval */
+  menuBarCycleIntervalEnabled: boolean;
+  /** Seconds between automatic menu bar page cycles (>= 5) */
+  menuBarCycleIntervalSeconds: number;
+  /** Custom titles for each menu bar page/group */
+  menuBarPageTitles: string[];
+  /** Custom format overrides per sensor entity ID */
+  sensorFormats: Record<string, string>;
   /** Whether to automatically start the app when the user logs in */
   autoStartOnLogin: boolean;
   /** UI color scheme preference */

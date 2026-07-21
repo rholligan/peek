@@ -51,9 +51,10 @@ function computeMenuItemTexts(
       const entityId = settings.dropdownSensors[i];
       const entity = states.get(entityId);
       const customName = settings.dropdownSensorNames?.[entityId];
+      const customFormat = settings.sensorFormats?.[entityId] || settings.dropdownFormat;
       texts.set(
         `sensor-${i}`,
-        formatSensor(entityId, entity, customName, settings.dropdownFormat, {}),
+        formatSensor(entityId, entity, customName, customFormat, {}),
       );
     }
   }

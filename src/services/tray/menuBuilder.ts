@@ -83,11 +83,12 @@ async function buildSensorItems(
     const entityId = settings.dropdownSensors[i];
     const entity = states.get(entityId);
     const customName = settings.dropdownSensorNames?.[entityId];
+    const customFormat = settings.sensorFormats?.[entityId] || settings.dropdownFormat;
     const text = formatSensor(
       entityId,
       entity,
       customName,
-      settings.dropdownFormat,
+      customFormat,
       {}
     );
 

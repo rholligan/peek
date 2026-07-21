@@ -17,7 +17,7 @@ import { Select } from "@/components/ui/Select";
 import { Separator } from "@/components/ui/Separator";
 import { ShortcutInput } from "@/components/ui/ShortcutInput";
 import { Switch } from "@/components/ui/Switch";
-import { useAutoSaveField } from "@/hooks/useAutoSaveField";
+import { useAutoSaveField, useAutoSaveSettings } from "@/hooks/useAutoSaveField";
 import {
   probeMenuBarCycleShortcut,
   syncMenuBarCycleShortcut,
@@ -51,6 +51,7 @@ const formatDescription = (
  * Uses auto-save pattern with immediate save for toggles and debounced save for text.
  */
 export function AppearanceTab() {
+  const { settings, savePartial } = useAutoSaveSettings();
   const { value: menuBarSeparator, onChange: setMenuBarSeparator } =
     useAutoSaveField({ field: "menuBarSeparator", debounce: 0 });
   const { value: menuBarFormat, onChange: setMenuBarFormat } = useAutoSaveField(
@@ -68,6 +69,10 @@ export function AppearanceTab() {
     useAutoSaveField({ field: "menuBarAutoReturnEnabled", debounce: 0 });
   const { value: autoReturnMinutes, onChange: setAutoReturnMinutes } =
     useAutoSaveField({ field: "menuBarAutoReturnMinutes", debounce: 500 });
+  const { value: cycleIntervalEnabled, onChange: setCycleIntervalEnabled } =
+    useAutoSaveField({ field: "menuBarCycleIntervalEnabled", debounce: 0 });
+  const { value: cycleIntervalSeconds, onChange: setCycleIntervalSeconds } =
+    useAutoSaveField({ field: "menuBarCycleIntervalSeconds", debounce: 500 });
 
   return (
     <>
@@ -194,6 +199,72 @@ export function AppearanceTab() {
                 ariaLabel="Auto-return minutes"
               />
             </Field>
+
+            <Separator />
+
+            <Field
+              label="Enable auto-cycle"
+              helperText="Automatically rotate menu bar sensor pages on a timer."
+              orientation="horizontal"
+            >
+              <Switch
+                checked={cycleIntervalEnabled}
+                onCheckedChange={setCycleIntervalEnabled}
+                disabled={!paginationEnabled}
+                aria-label="Enable auto-cycle"
+              />
+            </Field>
+
+            <Separator />
+
+            <Field
+              label="Cycle interval"
+              helperText="Seconds to wait before rotating to the next page."
+              orientation="horizontal"
+            >
+              <NumberStepperInput
+                value={cycleIntervalSeconds}
+                onChange={setCycleIntervalSeconds}
+                min={5}
+                max={60}
+                disabled={!paginationEnabled || !cycleIntervalEnabled}
+                ariaLabel="Cycle interval seconds"
+              />
+            </Field>
+
+            {paginationEnabled && settings.menuBarSensors.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-sm text-fg mb-1">Page/Group Titles</h4>
+                    <p className="text-xs text-fg-muted">Provide a custom title prefix for each page (e.g., &quot;Home&quot;, &quot;Office&quot;). Leave blank to hide.</p>
+                  </div>
+                  <div className="space-y-3 pl-2">
+                    {Array.from({ length: Math.ceil(settings.menuBarSensors.length / sensorsPerPage) }).map((_, idx) => (
+                      <Field
+                        key={idx}
+                        label={`Page ${idx + 1} Title`}
+                        helperText={`Prefix for page ${idx + 1}.`}
+                        orientation="horizontal"
+                      >
+                        <input
+                          type="text"
+                          value={settings.menuBarPageTitles?.[idx] || ""}
+                          onChange={(e) => {
+                            const newTitles = [...(settings.menuBarPageTitles || [])];
+                            newTitles[idx] = e.target.value;
+                            savePartial({ menuBarPageTitles: newTitles });
+                          }}
+                          className="font-medium text-sm bg-bg-panel border border-border rounded-lg px-3 py-1.5 w-44 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
+                          placeholder={`Page ${idx + 1}`}
+                        />
+                      </Field>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </CardBody>
       </Card>

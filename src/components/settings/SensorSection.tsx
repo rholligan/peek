@@ -85,6 +85,7 @@ export const SensorSection = memo(function SensorSection({
   const sensorList = settings[listKey];
   const namesKey = sensorNamesKeyMap[listKey];
   const sensorNames = settings[namesKey];
+  const sensorFormats = settings.sensorFormats || {};
 
   // Make this section a droppable container for cross-list drops
   const { setNodeRef } = useDroppable({ id: listKey });
@@ -132,6 +133,19 @@ export const SensorSection = memo(function SensorSection({
     [sensorNames, namesKey, savePartial]
   );
 
+  const handleFormatChange = useCallback(
+    (entityId: string, format: string) => {
+      const formats = { ...settings.sensorFormats };
+      if (format) {
+        formats[entityId] = format;
+      } else {
+        delete formats[entityId];
+      }
+      savePartial({ sensorFormats: formats });
+    },
+    [settings.sensorFormats, savePartial]
+  );
+
   return (
     <Card
       ref={setNodeRef}
@@ -174,9 +188,13 @@ export const SensorSection = memo(function SensorSection({
                           entityId={entityId}
                           originalName={originalName}
                           customName={customName}
+                          customFormat={sensorFormats[entityId] || ""}
                           sensorValue={sensorValue}
                           onNameChange={(name) =>
                             handleNameChange(entityId, name)
+                          }
+                          onFormatChange={(format) =>
+                            handleFormatChange(entityId, format)
                           }
                           onRemove={() =>
                             setSensorToRemove({

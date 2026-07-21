@@ -58,7 +58,24 @@ export function formatSensor(
 
   const friendlyName = entity?.attributes?.friendly_name as string | undefined;
   const fallbackId = useShortId ? entityId.split(".")[1] : entityId;
-  const label = customName ?? friendlyName ?? fallbackId;
+  
+  // Differentiate between "no custom name" (undefined) and "explicit blank/empty title" (" " or "")
+  const isBlank = customName === " " || customName === "";
+  const label = isBlank ? "" : (customName ?? friendlyName ?? fallbackId);
+
+  if (label === "") {
+    if (!entity) {
+      return hideUnavailable ? "" : "N/A";
+    }
+    const sensorState = entity.state;
+    if (sensorState === "unavailable" || sensorState === "unknown") {
+      return hideUnavailable ? "" : sensorState;
+    }
+    const unit = entity.attributes?.unit_of_measurement
+      ? ` ${entity.attributes.unit_of_measurement}`
+      : "";
+    return `${formatStateValue(sensorState, entity.displayPrecision)}${unit}`;
+  }
 
   if (!entity) {
     return hideUnavailable

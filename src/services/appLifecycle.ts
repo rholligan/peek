@@ -12,6 +12,7 @@ import {
   clearMenuBarAutoReturn,
   getMenuBarPaginationInfo,
   initTray,
+  isMenuBarPaginationActive,
   rebuildTrayMenu,
   renderTray,
   resetMenuBarPage,
@@ -59,7 +60,31 @@ function autoReturnInputsChanged(prev: Settings | null, next: Settings): boolean
   );
 }
 
-function cycleMenuBarPage(): void {
+let cycleIntervalId: ReturnType<typeof setInterval> | null = null;
+
+function configureMenuBarCycleInterval(settings: Settings): void {
+  if (cycleIntervalId) {
+    clearInterval(cycleIntervalId);
+    cycleIntervalId = null;
+  }
+
+  const isPaged = isMenuBarPaginationActive(settings);
+  const info = getMenuBarPaginationInfo(settings);
+  const hasMultiplePages = info && info.totalPages > 1;
+
+  if (
+    settings.menuBarCycleIntervalEnabled &&
+    isPaged &&
+    hasMultiplePages &&
+    settings.menuBarCycleIntervalSeconds >= 5
+  ) {
+    cycleIntervalId = setInterval(() => {
+      cycleMenuBarPage(false);
+    }, settings.menuBarCycleIntervalSeconds * 1000);
+  }
+}
+
+function cycleMenuBarPage(isManual = false): void {
   if (!currentSettings) return;
   const info = getMenuBarPaginationInfo(currentSettings);
   if (!info) return;
@@ -72,6 +97,11 @@ function cycleMenuBarPage(): void {
     });
   } else {
     clearMenuBarAutoReturn();
+  }
+
+  // If manual cycle (keyboard shortcut), reset the auto-cycle timer
+  if (isManual) {
+    configureMenuBarCycleInterval(currentSettings);
   }
 }
 
@@ -136,8 +166,11 @@ export async function initializeApp(): Promise<void> {
   // Start periodic update checks (skips if checked recently)
   startPeriodicChecks(currentSettings.lastUpdateCheck);
 
-  configureMenuBarCycleShortcut(currentSettings, cycleMenuBarPage);
+  configureMenuBarCycleShortcut(currentSettings, () => cycleMenuBarPage(true));
   await syncMenuBarCycleShortcut();
+
+  // Initialize auto-cycle interval
+  configureMenuBarCycleInterval(currentSettings);
 }
 
 /**
@@ -162,8 +195,11 @@ export async function onSettingsChanged(): Promise<void> {
   // Rebuild tray menu with new settings (sensors/URL may have changed)
   await rebuildTrayMenu(getStates(trackedIds), currentSettings);
 
-  configureMenuBarCycleShortcut(currentSettings, cycleMenuBarPage);
+  configureMenuBarCycleShortcut(currentSettings, () => cycleMenuBarPage(true));
   await syncMenuBarCycleShortcut();
+
+  // Configure/refresh auto-cycle interval
+  configureMenuBarCycleInterval(currentSettings);
 
   // Only reconnect if connection settings (URL or token) changed
   const connectionChanged =
