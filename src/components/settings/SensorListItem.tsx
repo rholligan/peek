@@ -28,10 +28,8 @@ interface SensorListItemProps {
   customFormat: string;
   /** Current sensor value with unit */
   sensorValue: string;
-  /** Callback when display name is changed */
-  onNameChange: (name: string) => void;
-  /** Callback when format is changed */
-  onFormatChange: (format: string) => void;
+  /** Callback when sensor settings are saved */
+  onSave: (name: string, format: string) => void;
   /** Callback when remove button is clicked */
   onRemove: () => void;
   /** Drag handle props from useSortable */
@@ -52,8 +50,7 @@ const SensorListItem = memo(
       customName,
       customFormat,
       sensorValue,
-      onNameChange,
-      onFormatChange,
+      onSave,
       onRemove,
       dragHandleProps,
       isDragging,
@@ -81,8 +78,7 @@ const SensorListItem = memo(
       // If the input is completely empty or just spaces, save as " " (blank title)
       // Otherwise, save the trimmed name.
       const finalName = trimmedName === "" ? " " : trimmedName;
-      onNameChange(finalName);
-      onFormatChange(localFormat.trim());
+      onSave(finalName, localFormat.trim());
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -239,8 +235,7 @@ const SensorListItem = memo(
                   variant="ghost"
                   size="xs"
                   onClick={() => {
-                    onNameChange("");
-                    onFormatChange("");
+                    onSave("", "");
                     setIsEditing(false);
                   }}
                   className="text-orange-500 hover:text-orange-600"

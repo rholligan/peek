@@ -120,30 +120,28 @@ export const SensorSection = memo(function SensorSection({
     }
   }, [sensorToRemove, handleRemove]);
 
-  const handleNameChange = useCallback(
-    (entityId: string, name: string) => {
+  const handleSaveSensorSettings = useCallback(
+    (entityId: string, name: string, format: string) => {
       const names = { ...sensorNames };
       if (name) {
         names[entityId] = name;
       } else {
         delete names[entityId];
       }
-      savePartial({ [namesKey]: names });
-    },
-    [sensorNames, namesKey, savePartial]
-  );
 
-  const handleFormatChange = useCallback(
-    (entityId: string, format: string) => {
       const formats = { ...settings.sensorFormats };
       if (format) {
         formats[entityId] = format;
       } else {
         delete formats[entityId];
       }
-      savePartial({ sensorFormats: formats });
+
+      savePartial({
+        [namesKey]: names,
+        sensorFormats: formats,
+      });
     },
-    [settings.sensorFormats, savePartial]
+    [sensorNames, settings.sensorFormats, namesKey, savePartial]
   );
 
   return (
@@ -190,11 +188,8 @@ export const SensorSection = memo(function SensorSection({
                           customName={customName}
                           customFormat={sensorFormats[entityId] || ""}
                           sensorValue={sensorValue}
-                          onNameChange={(name) =>
-                            handleNameChange(entityId, name)
-                          }
-                          onFormatChange={(format) =>
-                            handleFormatChange(entityId, format)
+                          onSave={(name, format) =>
+                            handleSaveSensorSettings(entityId, name, format)
                           }
                           onRemove={() =>
                             setSensorToRemove({
