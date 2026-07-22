@@ -220,8 +220,14 @@ let activeTransitionTimer: ReturnType<typeof setInterval> | null = null;
  * @param source - The starting title string
  * @param target - The ending title string
  * @param tray - The Tauri TrayIcon instance
+ * @param style - The animation style ('fade' | 'scramble' | 'roll')
  */
-function animateTitleTransition(source: string, target: string, tray: TrayIcon): Promise<void> {
+function animateTitleTransition(
+  source: string,
+  target: string,
+  tray: TrayIcon,
+  style: "fade" | "scramble" | "roll"
+): Promise<void> {
   return new Promise<void>((resolve) => {
     if (activeTransitionTimer) {
       clearInterval(activeTransitionTimer);
@@ -246,24 +252,75 @@ function animateTitleTransition(source: string, target: string, tray: TrayIcon):
       }
 
       const ratio = currentStep / steps;
-      const blended = blendStrings(source, target, ratio);
+      const blended = blendStrings(source, target, ratio, style);
       tray.setTitle(blended).catch(() => {});
     }, interval);
   });
 }
 
 /**
- * Blend two strings based on progress ratio (0 to 1).
+ * Blend two strings based on progress ratio (0 to 1) and transition style.
  * Replaces random characters of source with target characters or scramble symbols.
  *
  * @param source - The source starting string
  * @param target - The target ending string
  * @param ratio - Progress ratio from 0 to 1
+ * @param style - Transition style ('fade' | 'scramble' | 'roll')
  */
-function blendStrings(source: string, target: string, ratio: number): string {
+function blendStrings(
+  source: string,
+  target: string,
+  ratio: number,
+  style: "fade" | "scramble" | "roll"
+): string {
   const maxLength = Math.max(source.length, target.length);
   let result = "";
 
+  if (style === "fade") {
+    // Fade/Blink effect: dissolve out to spaces, then dissolve in to target
+    for (let i = 0; i < maxLength; i++) {
+      if (ratio < 0.5) {
+        if (i < source.length) {
+          result += Math.random() < ratio * 2 ? " " : source[i];
+        }
+      } else {
+        if (i < target.length) {
+          result += Math.random() < (ratio - 0.5) * 2 ? target[i] : " ";
+        }
+      }
+    }
+    return result;
+  }
+
+  if (style === "roll") {
+    // Slot machine roll effect: linearly interpolate digits, snap non-digits at 50%
+    for (let i = 0; i < maxLength; i++) {
+      const srcChar = i < source.length ? source[i] : " ";
+      const tgtChar = i < target.length ? target[i] : " ";
+      
+      if (srcChar === tgtChar) {
+        result += tgtChar;
+        continue;
+      }
+
+      const srcCode = srcChar.charCodeAt(0);
+      const tgtCode = tgtChar.charCodeAt(0);
+      const isSrcDigit = srcCode >= 48 && srcCode <= 57;
+      const isTgtDigit = tgtCode >= 48 && tgtCode <= 57;
+
+      if (isSrcDigit && isTgtDigit) {
+        const srcNum = srcCode - 48;
+        const tgtNum = tgtCode - 48;
+        const currentDigit = Math.round(srcNum + (tgtNum - srcNum) * ratio);
+        result += String(currentDigit);
+      } else {
+        result += ratio >= 0.5 ? tgtChar : srcChar;
+      }
+    }
+    return result;
+  }
+
+  // Default: 'scramble'
   for (let i = 0; i < maxLength; i++) {
     // Probability of using the target character increases as ratio increases
     if (Math.random() < ratio) {
@@ -308,8 +365,8 @@ function updateMenuBarTitle(
   state.pendingTitleUpdate = state.pendingTitleUpdate
     .then(() => {
       if (titleToSet === state.latestTitle) {
-        if (settings.menuBarPageTransitionsEnabled && oldTitle && oldTitle !== titleToSet && state.status === "connected") {
-          return animateTitleTransition(oldTitle, titleToSet, state.tray!);
+        if (settings.menuBarPageTransitionStyle !== "none" && oldTitle && oldTitle !== titleToSet && state.status === "connected") {
+          return animateTitleTransition(oldTitle, titleToSet, state.tray!, settings.menuBarPageTransitionStyle);
         } else {
           return state.tray?.setTitle(titleToSet);
         }
