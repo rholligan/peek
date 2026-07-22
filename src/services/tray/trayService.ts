@@ -210,6 +210,82 @@ export async function setTrayConnectedState(
   await rebuildTrayMenu(states, settings);
 }
 
+let activeTransitionTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Animate transition between two titles in the menu bar using a character scramble/dissolve.
+ * Returns a Promise that resolves when the animation is completed.
+ *
+ * @param source - The starting title string
+ * @param target - The ending title string
+ * @param tray - The Tauri TrayIcon instance
+ */
+function animateTitleTransition(source: string, target: string, tray: TrayIcon): Promise<void> {
+  return new Promise<void>((resolve) => {
+    if (activeTransitionTimer) {
+      clearInterval(activeTransitionTimer);
+      activeTransitionTimer = null;
+    }
+
+    const steps = 6;
+    const interval = 25; // 25ms per step -> 150ms total animation duration (super snappy!)
+    let currentStep = 0;
+
+    activeTransitionTimer = setInterval(() => {
+      currentStep++;
+      if (currentStep >= steps) {
+        if (activeTransitionTimer) {
+          clearInterval(activeTransitionTimer);
+          activeTransitionTimer = null;
+        }
+        tray.setTitle(target)
+          .then(() => resolve())
+          .catch(() => resolve());
+        return;
+      }
+
+      const ratio = currentStep / steps;
+      const blended = blendStrings(source, target, ratio);
+      tray.setTitle(blended).catch(() => {});
+    }, interval);
+  });
+}
+
+/**
+ * Blend two strings based on progress ratio (0 to 1).
+ * Replaces random characters of source with target characters or scramble symbols.
+ *
+ * @param source - The source starting string
+ * @param target - The target ending string
+ * @param ratio - Progress ratio from 0 to 1
+ */
+function blendStrings(source: string, target: string, ratio: number): string {
+  const maxLength = Math.max(source.length, target.length);
+  let result = "";
+
+  for (let i = 0; i < maxLength; i++) {
+    // Probability of using the target character increases as ratio increases
+    if (Math.random() < ratio) {
+      if (i < target.length) {
+        result += target[i];
+      }
+    } else {
+      if (i < source.length) {
+        // Occasionally show a light scramble character (e.g. . or · or space) for a "dissolve" effect
+        if (Math.random() < 0.25) {
+          result += "·";
+        } else {
+          result += source[i];
+        }
+      } else {
+        result += " ";
+      }
+    }
+  }
+
+  return result;
+}
+
 /**
  * Update the menu bar title.
  * Serializes updates to prevent racing async setTitle calls from causing flicker.
@@ -225,12 +301,17 @@ function updateMenuBarTitle(
   const titleToSet = buildMenuBarTitle(states, settings, state.status);
 
   if (titleToSet === state.latestTitle) return;
+  const oldTitle = state.latestTitle || "";
   state.latestTitle = titleToSet;
 
   state.pendingTitleUpdate = state.pendingTitleUpdate
     .then(() => {
       if (titleToSet === state.latestTitle) {
-        return state.tray?.setTitle(titleToSet);
+        if (oldTitle && oldTitle !== titleToSet && state.status === "connected") {
+          return animateTitleTransition(oldTitle, titleToSet, state.tray!);
+        } else {
+          return state.tray?.setTitle(titleToSet);
+        }
       }
     })
     .catch((err) => logger.error("Title update failed:", err));
