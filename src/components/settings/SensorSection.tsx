@@ -112,6 +112,14 @@ export const SensorSection = memo(function SensorSection({
     });
   }, [sensorList, sensorNames, listKey, namesKey, savePartial]);
 
+  const handleAddPageBreak = useCallback(() => {
+    const uniqueId = `page_break:${Date.now()}`;
+    const updated = addSensor(sensorList, uniqueId);
+    savePartial({
+      [listKey]: updated,
+    });
+  }, [sensorList, listKey, savePartial]);
+
   const handleRemove = useCallback(
     (entityId: string) => {
       const updated = removeSensor(sensorList, entityId);
@@ -219,14 +227,14 @@ export const SensorSection = memo(function SensorSection({
             </SortableContext>
           )}
 
-          <div className="flex gap-3">
+          <div className="flex gap-2 flex-wrap">
             <Button
               variant="outline"
               onClick={() => {
                 setModalKey((k) => k + 1);
                 setIsModalOpen(true);
               }}
-              className="flex-1 border-dashed"
+              className="flex-1 min-w-[120px] border-dashed"
             >
               <Plus size={16} />
               Add sensor
@@ -234,12 +242,23 @@ export const SensorSection = memo(function SensorSection({
             <Button
               variant="outline"
               onClick={handleAddGroupElement}
-              className="border-dashed px-4"
+              className="border-dashed flex-1 min-w-[140px] px-3"
               title="Add a custom text label or divider to group your sensors"
             >
               <Plus size={16} />
               Add Group / Divider
             </Button>
+            {listKey === "menuBarSensors" && (
+              <Button
+                variant="outline"
+                onClick={handleAddPageBreak}
+                className="border-dashed flex-1 min-w-[120px] px-3 text-fg-muted"
+                title="Add a manual page break to split your menu bar pages"
+              >
+                <Plus size={16} />
+                Add Page Break
+              </Button>
+            )}
           </div>
         </div>
       </CardBody>

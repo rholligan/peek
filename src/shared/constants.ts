@@ -46,6 +46,7 @@ export const DEFAULT_SETTINGS: Settings = {
   menuBarSeparator: '•',
   menuBarPaginationEnabled: false,
   menuBarSensorsPerPage: 3,
+  menuBarPaginationExcludeGroups: false,
   menuBarCycleShortcut: 'CmdOrCtrl+Alt+P',
   menuBarAutoReturnEnabled: false,
   menuBarAutoReturnMinutes: 5,

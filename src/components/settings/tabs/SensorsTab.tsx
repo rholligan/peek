@@ -36,11 +36,13 @@ import { Separator } from "@/components/ui/Separator";
 import { ShortcutInput } from "@/components/ui/ShortcutInput";
 import { Switch } from "@/components/ui/Switch";
 import { useAutoSaveSettings } from "@/hooks/useAutoSaveField";
+import { useHaStates } from "@/hooks/useHaStates";
 import {
   probeMenuBarCycleShortcut,
   syncMenuBarCycleShortcut,
   unregisterMenuBarCycleShortcut,
 } from "@/services/globalShortcut";
+import { getMenuBarPages } from "@/services/tray";
 import { moveSensorBetweenLists } from "@/shared";
 
 const CONTAINER_IDS: readonly SensorListKey[] = [
@@ -95,6 +97,7 @@ const SECTIONS: ReadonlyArray<{
  */
 export function SensorsTab() {
   const { settings, savePartial } = useAutoSaveSettings();
+  const [states] = useHaStates();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overContainerId, setOverContainerId] = useState<SensorListKey | null>(
     null
@@ -301,6 +304,21 @@ export function SensorsTab() {
             <Separator />
 
             <Field
+              label="Exclude group titles from page limit"
+              helperText="Exclude non-sensor group titles and separators from the pagination count."
+              orientation="horizontal"
+            >
+              <Switch
+                checked={settings.menuBarPaginationExcludeGroups}
+                onCheckedChange={(checked) => savePartial({ menuBarPaginationExcludeGroups: checked })}
+                disabled={!settings.menuBarPaginationEnabled}
+                aria-label="Exclude group titles from page limit"
+              />
+            </Field>
+
+            <Separator />
+
+            <Field
               label="Cycle shortcut"
               helperText="Global shortcut to advance to the next page."
               orientation="horizontal"
@@ -380,6 +398,59 @@ export function SensorsTab() {
                 ariaLabel="Cycle interval seconds"
               />
             </Field>
+
+            {settings.menuBarPaginationEnabled && settings.menuBarSensors.length > 0 && (
+              <>
+                <Separator />
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-sm text-fg mb-1">Live Page Split Preview</h4>
+                    <p className="text-xs text-fg-muted">See exactly how your sensors and groups are partitioned into pages under current settings.</p>
+                  </div>
+                  <div className="space-y-3.5 pl-2 max-h-72 overflow-y-auto">
+                    {getMenuBarPages(settings).map((pageItems, pageIdx) => (
+                      <div key={pageIdx} className="bg-bg-panel/40 border border-border/80 rounded-xl p-3.5 space-y-2">
+                        <div className="flex justify-between items-center border-b border-border/60 pb-1.5 mb-1.5 select-none">
+                          <span className="font-bold text-xs uppercase tracking-wider text-blue-500">Page {pageIdx + 1}</span>
+                          <span className="text-3xs text-fg-muted font-semibold">{pageItems.length} elements</span>
+                        </div>
+                        {pageItems.length === 0 ? (
+                          <p className="text-xs text-fg-muted italic select-none">This page is empty.</p>
+                        ) : (
+                          <div className="space-y-1.5 pl-1.5">
+                            {pageItems.map((item, idx) => {
+                              const isGroup = item.startsWith("group:");
+                              const isPageBreak = item.startsWith("page_break:");
+                              const text = (isGroup
+                                ? (settings.menuBarSensorNames?.[item] || "Group Title")
+                                : (settings.menuBarSensorNames?.[item] || states.get(item)?.attributes?.friendly_name || item)) as string;
+                              return (
+                                <div key={idx} className="flex items-center gap-2 text-xs">
+                                  {isGroup ? (
+                                    <>
+                                      <span className="text-3xs bg-bg-muted font-semibold uppercase tracking-wider text-purple-500 px-1 py-0.5 rounded border border-border/40 font-mono select-none">TEXT</span>
+                                      <span className="font-semibold text-fg font-mono">{text}</span>
+                                    </>
+                                  ) : isPageBreak ? (
+                                    <span className="text-3xs text-fg-muted font-mono select-none">--- PAGE BREAK ---</span>
+                                  ) : (
+                                    <>
+                                      <span className="text-3xs bg-bg-muted font-semibold uppercase tracking-wider text-green-500 px-1 py-0.5 rounded border border-border/40 font-mono select-none">SENSOR</span>
+                                      <span className="text-fg-muted font-mono">{text}</span>
+                                      <span className="text-3xs text-fg-muted font-mono pl-1 select-none">({states.get(item)?.state || "—"})</span>
+                                    </>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </CardBody>
       </Card>

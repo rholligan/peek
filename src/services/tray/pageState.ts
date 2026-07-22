@@ -61,16 +61,93 @@ export function clearAutoReturn(): void {
 }
 
 /**
+ * Partition the list of sensors and groups into separate pages based on settings.
+ * Supports manual page breaks and automatic chunking (with optional group exclusion).
+ * @param settings - The settings snapshot to partition.
+ */
+export function getPages(settings: Settings): string[][] {
+  const sensors = settings.menuBarSensors;
+  const perPage = settings.menuBarSensorsPerPage;
+  const excludeGroups = settings.menuBarPaginationExcludeGroups;
+
+  if (!settings.menuBarPaginationEnabled || sensors.length === 0) {
+    return [sensors];
+  }
+
+  // Check if manual page breaks are used
+  const hasPageBreaks = sensors.some((item) => item.startsWith("page_break:"));
+
+  if (hasPageBreaks) {
+    const pages: string[][] = [];
+    let currentPageItems: string[] = [];
+
+    for (const item of sensors) {
+      if (item.startsWith("page_break:")) {
+        if (currentPageItems.length > 0) {
+          pages.push(currentPageItems);
+          currentPageItems = [];
+        }
+      } else {
+        currentPageItems.push(item);
+      }
+    }
+
+    if (currentPageItems.length > 0) {
+      pages.push(currentPageItems);
+    }
+
+    return pages.length > 0 ? pages : [[]];
+  }
+
+  // Automatic pagination chunking
+  if (perPage <= 0) return [sensors];
+
+  if (!excludeGroups) {
+    const pages: string[][] = [];
+    for (let i = 0; i < sensors.length; i += perPage) {
+      pages.push(sensors.slice(i, i + perPage));
+    }
+    return pages;
+  }
+
+  // Automatic pagination with group exclusion
+  const pages: string[][] = [];
+  let currentPageItems: string[] = [];
+  let currentSensorCount = 0;
+
+  for (const item of sensors) {
+    const isGroup = item.startsWith("group:");
+    
+    if (isGroup) {
+      currentPageItems.push(item);
+    } else {
+      if (currentSensorCount >= perPage) {
+        pages.push(currentPageItems);
+        currentPageItems = [];
+        currentSensorCount = 0;
+      }
+      currentPageItems.push(item);
+      currentSensorCount++;
+    }
+  }
+
+  if (currentPageItems.length > 0) {
+    pages.push(currentPageItems);
+  }
+
+  return pages;
+}
+
+/**
  * Whether pagination is currently active for the given settings snapshot
  * (toggle on, positive per-page, and more sensors than fit on one page).
  * @param settings - The settings to check.
  */
 export function isPaginationActive(settings: Settings): boolean {
-  return (
-    settings.menuBarPaginationEnabled &&
-    settings.menuBarSensorsPerPage > 0 &&
-    settings.menuBarSensors.length > settings.menuBarSensorsPerPage
-  );
+  if (!settings.menuBarPaginationEnabled || settings.menuBarSensors.length === 0) {
+    return false;
+  }
+  return getPages(settings).length > 1;
 }
 
 export interface PaginationInfo {
@@ -88,10 +165,10 @@ export interface PaginationInfo {
  */
 export function getPaginationInfo(settings: Settings): PaginationInfo | null {
   if (!isPaginationActive(settings)) return null;
-  const perPage = settings.menuBarSensorsPerPage;
-  const totalPages = Math.max(1, Math.ceil(settings.menuBarSensors.length / perPage));
+  const pages = getPages(settings);
+  const totalPages = pages.length;
   if (currentPage >= totalPages) currentPage = 0;
-  return { page: currentPage, totalPages, perPage };
+  return { page: currentPage, totalPages, perPage: settings.menuBarSensorsPerPage };
 }
 
 /**
@@ -100,8 +177,9 @@ export function getPaginationInfo(settings: Settings): PaginationInfo | null {
  * @param settings - The settings snapshot to slice.
  */
 export function getPagedSensors(settings: Settings): string[] {
+  if (!isPaginationActive(settings)) return settings.menuBarSensors;
+  const pages = getPages(settings);
   const info = getPaginationInfo(settings);
   if (!info) return settings.menuBarSensors;
-  const start = info.page * info.perPage;
-  return settings.menuBarSensors.slice(start, start + info.perPage);
+  return pages[info.page] || [];
 }

@@ -34,6 +34,8 @@ export interface Settings {
   menuBarPaginationEnabled: boolean;
   /** Number of sensors shown per page when pagination is enabled (>= 1) */
   menuBarSensorsPerPage: number;
+  /** Whether to exclude group/text elements from counting towards the page sensor limit */
+  menuBarPaginationExcludeGroups: boolean;
   /** Global shortcut accelerator for cycling menu bar pages (Tauri format, empty = disabled) */
   menuBarCycleShortcut: string;
   /** Whether to automatically return to the first page after a period of inactivity */

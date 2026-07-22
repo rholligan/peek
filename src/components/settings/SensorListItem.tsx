@@ -92,6 +92,42 @@ const SensorListItem = memo(
     };
 
     const isGroup = entityId.startsWith("group:");
+    const isPageBreak = entityId.startsWith("page_break:");
+
+    if (isPageBreak) {
+      return (
+        <li
+          ref={ref}
+          className={cn("list-none", isDragging && "opacity-50")}
+        >
+          <div className="flex items-center justify-between gap-4 px-4 py-3 rounded-xl border border-dashed border-border/80 bg-bg-panel/40 select-none">
+            <span className="text-2xs font-semibold uppercase tracking-widest text-fg-muted font-mono pl-2">
+              --- PAGE BREAK (Splits menu bar pages) ---
+            </span>
+            <div className="flex gap-0">
+              <IconButton
+                aria-label="Drag to reorder"
+                variant="ghost"
+                size="xs"
+                className="cursor-grab active:cursor-grabbing"
+                {...dragHandleProps?.attributes}
+                {...dragHandleProps?.listeners}
+              >
+                <Grip size={16} />
+              </IconButton>
+              <IconButton
+                aria-label="Remove page break"
+                variant="ghost"
+                size="xs"
+                onClick={onRemove}
+              >
+                <Trash2 size={14} />
+              </IconButton>
+            </div>
+          </div>
+        </li>
+      );
+    }
 
     // Determine how to display the sensor name
     const isBlank = customName === " ";

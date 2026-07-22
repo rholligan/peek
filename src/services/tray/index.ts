@@ -10,6 +10,7 @@ export {
   advancePage as advanceMenuBarPage,
   resetPage as resetMenuBarPage,
   getPaginationInfo as getMenuBarPaginationInfo,
+  getPages as getMenuBarPages,
   isPaginationActive as isMenuBarPaginationActive,
   scheduleAutoReturn as scheduleMenuBarAutoReturn,
   clearAutoReturn as clearMenuBarAutoReturn,

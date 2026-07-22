@@ -31,6 +31,7 @@ const configSchema = z.object({
   menuBarSeparator: z.string().optional(),
   menuBarAutoReturnEnabled: z.boolean().optional(),
   menuBarAutoReturnMinutes: z.number().int().min(1).max(120).optional(),
+  menuBarPaginationExcludeGroups: z.boolean().optional(),
   menuBarCycleIntervalEnabled: z.boolean().optional(),
   menuBarCycleIntervalSeconds: z.number().int().min(5).max(60).optional(),
   sensorFormats: z.record(z.string(), z.string()).optional(),
