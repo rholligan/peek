@@ -52,7 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
   menuBarAutoReturnMinutes: 5,
   menuBarCycleIntervalEnabled: false,
   menuBarCycleIntervalSeconds: 10,
-  menuBarPageTransitionStyle: 'fade',
+  menuBarPageTransitionsEnabled: true,
   menuBarPageTransitionDuration: 300,
   menuBarPageWidthStabilizationEnabled: true,
   sensorFormats: {},

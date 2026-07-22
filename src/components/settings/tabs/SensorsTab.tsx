@@ -32,7 +32,6 @@ import {
 } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { NumberStepperInput } from "@/components/ui/NumberStepperInput";
-import { Select } from "@/components/ui/Select";
 import { Separator } from "@/components/ui/Separator";
 import { ShortcutInput } from "@/components/ui/ShortcutInput";
 import { Switch } from "@/components/ui/Switch";
@@ -403,23 +402,16 @@ export function SensorsTab() {
             <Separator />
 
             <Field
-              label="Page transition style"
-              helperText="Choose the visual effect when cycling menu bar pages."
+              label="Page transitions"
+              helperText="Briefly blank out the text before showing the next page to reduce visual distraction."
               orientation="horizontal"
             >
-              <Select
-                value={settings.menuBarPageTransitionStyle}
-                onChange={(e) => savePartial({ menuBarPageTransitionStyle: e.target.value as "none" | "fade" | "scramble" | "roll" | "typewriter" | "slide" })}
+              <Switch
+                checked={settings.menuBarPageTransitionsEnabled}
+                onCheckedChange={(checked) => savePartial({ menuBarPageTransitionsEnabled: checked })}
                 disabled={!settings.menuBarPaginationEnabled}
-                className="w-44"
-              >
-                <option value="none">None (instant)</option>
-                <option value="fade">Flash Fade</option>
-                <option value="scramble">Digital Scramble</option>
-                <option value="roll">Slot Machine Roll</option>
-                <option value="typewriter">Typewriter</option>
-                <option value="slide">Slide Push</option>
-              </Select>
+                aria-label="Enable page transitions"
+              />
             </Field>
 
             <Separator />
@@ -434,7 +426,7 @@ export function SensorsTab() {
                 onChange={(val) => savePartial({ menuBarPageTransitionDuration: val })}
                 min={50}
                 max={2000}
-                disabled={!settings.menuBarPaginationEnabled || settings.menuBarPageTransitionStyle === "none"}
+                disabled={!settings.menuBarPaginationEnabled || !settings.menuBarPageTransitionsEnabled}
                 ariaLabel="Page transition duration"
               />
             </Field>

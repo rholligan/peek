@@ -56,9 +56,9 @@ export interface Settings {
   menuBarCycleIntervalEnabled: boolean;
   /** Seconds between automatic menu bar page cycles (>= 5) */
   menuBarCycleIntervalSeconds: number;
-  /** Transition effect style when rotating menu bar pages */
-  menuBarPageTransitionStyle: 'none' | 'fade' | 'scramble' | 'roll' | 'typewriter' | 'slide';
-  /** Page transition duration in milliseconds (e.g. 300) */
+  /** Whether to briefly blank the text during page transitions to reduce visual distraction */
+  menuBarPageTransitionsEnabled: boolean;
+  /** Page transition blank duration in milliseconds (e.g. 300) */
   menuBarPageTransitionDuration: number;
   /** Whether to stabilize the menu bar width with space padding to prevent surrounding icons from shifting */
   menuBarPageWidthStabilizationEnabled: boolean;

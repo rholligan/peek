@@ -34,7 +34,7 @@ const configSchema = z.object({
   menuBarPaginationExcludeGroups: z.boolean().optional(),
   menuBarCycleIntervalEnabled: z.boolean().optional(),
   menuBarCycleIntervalSeconds: z.number().int().min(5).max(60).optional(),
-  menuBarPageTransitionStyle: z.enum(['none', 'fade', 'scramble', 'roll', 'typewriter', 'slide']).optional(),
+  menuBarPageTransitionsEnabled: z.boolean().optional(),
   menuBarPageTransitionDuration: z.number().int().min(50).max(2000).optional(),
   menuBarPageWidthStabilizationEnabled: z.boolean().optional(),
   sensorFormats: z.record(z.string(), z.string()).optional(),
