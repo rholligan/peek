@@ -3,7 +3,7 @@
  * @module settings/components/SensorListItem
  */
 
-import { Activity, Grip, Hash, Pencil, Trash2, Check, X } from "lucide-react";
+import { Activity, Grip, Hash, Pencil, Trash2, Check, X, RotateCcw } from "lucide-react";
 import { forwardRef, memo, useState } from "react";
 import type { DraggableAttributes } from "@dnd-kit/core";
 import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
@@ -78,9 +78,9 @@ const SensorListItem = memo(
       setIsEditing(false);
       const rawName = localName;
       const trimmedName = rawName.trim();
-      // If they type a space, save as " " (blank title override)
-      // If completely empty, save as "" (revert to original name)
-      const finalName = rawName === "" ? "" : (trimmedName === "" ? " " : trimmedName);
+      // If the input is completely empty or just spaces, save as " " (blank title)
+      // Otherwise, save the trimmed name.
+      const finalName = trimmedName === "" ? " " : trimmedName;
       onNameChange(finalName);
       onFormatChange(localFormat.trim());
     };
@@ -127,7 +127,7 @@ const SensorListItem = memo(
                     placeholder={originalName}
                     className="font-medium text-sm bg-bg-panel rounded-lg px-2.5 py-1.5 border border-border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full transition-colors"
                   />
-                  <span className="text-3xs text-fg-muted pl-0.5">Press spacebar for blank title, empty to reset.</span>
+                  <span className="text-3xs text-fg-muted pl-0.5">Leave empty or press spacebar for a blank/hidden title.</span>
                 </div>
                 <div className="flex flex-col gap-1">
                   <div className="flex justify-between items-center">
@@ -233,6 +233,20 @@ const SensorListItem = memo(
                   onClick={handleCommit}
                 >
                   <Check size={16} className="text-green-500" />
+                </IconButton>
+                <IconButton
+                  aria-label="Reset to default"
+                  variant="ghost"
+                  size="xs"
+                  onClick={() => {
+                    onNameChange("");
+                    onFormatChange("");
+                    setIsEditing(false);
+                  }}
+                  className="text-orange-500 hover:text-orange-600"
+                  title="Reset to default name and format"
+                >
+                  <RotateCcw size={15} />
                 </IconButton>
                 <IconButton
                   aria-label="Cancel editing"
