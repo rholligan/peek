@@ -236,10 +236,9 @@ function animateTitleTransition(
       activeTransitionTimer = null;
     }
 
-    // Gentle IPC frequency: 5 steps (4 intermediate frames + 1 final frame)
-    // For 300ms, this is 60ms interval, which is perfectly friendly on the Tauri IPC bridge!
-    const steps = 5;
-    const interval = Math.max(10, Math.floor(duration / steps));
+    // High-fidelity refresh rate: 40ms per step (25fps) which is silky smooth and extremely friendly to AppKit
+    const interval = 40;
+    const steps = Math.max(3, Math.floor(duration / interval));
     let currentStep = 0;
 
     activeTransitionTimer = setInterval(() => {

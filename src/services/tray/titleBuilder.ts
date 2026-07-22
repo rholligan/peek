@@ -115,10 +115,10 @@ export function buildMenuBarTitle(
         maxLength = Math.max(maxLength, pageTitle.length);
       }
 
-      // Pad our current page title with standard spaces to match maxLength
+      // Pad our current page title with non-breaking spaces (\u00A0) to match maxLength (prevent macOS from trimming trailing whitespace)
       const paddingNeeded = maxLength - title.length;
       if (paddingNeeded > 0) {
-        title += " ".repeat(paddingNeeded);
+        title += "\u00A0".repeat(paddingNeeded);
       }
     }
   }
