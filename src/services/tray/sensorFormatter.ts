@@ -4,7 +4,7 @@
  * @module services/tray/sensorFormatter
  */
 
-import { formatStateValue, type HaEntityState } from "@/shared";
+import { type HaEntityState, type SensorConfig } from "@/shared";
 
 /**
  * Options for formatting a sensor.
@@ -14,6 +14,8 @@ export interface FormatSensorOptions {
   hideUnavailable?: boolean;
   /** Use short entity ID (after the dot) as fallback instead of full ID */
   useShortId?: boolean;
+  /** Custom numeric configuration */
+  numericConfig?: SensorConfig;
 }
 
 /**
@@ -30,6 +32,48 @@ export interface FormatSensorOptions {
  */
 export function applyFormat(format: string, name: string, value: string): string {
   return format.replaceAll("{name}", name).replaceAll("{value}", value);
+}
+
+/**
+ * Format a raw state value, applying HA precision, custom scale multipliers, units, and decimal overrides.
+ *
+ * @param state - The raw state string from HA (e.g. "5555")
+ * @param entity - The full HA entity state snapshot
+ * @param config - Optional custom numeric scaling/unit configurations
+ */
+function formatNumericValue(
+  state: string,
+  entity: HaEntityState | undefined,
+  config?: SensorConfig
+): { formattedValue: string; formattedUnit: string } {
+  const rawUnit = entity?.attributes?.unit_of_measurement as string | undefined;
+  const unit = config?.customUnit !== undefined ? config.customUnit : (rawUnit || "");
+
+  if (state === "unavailable" || state === "unknown") {
+    return { formattedValue: state, formattedUnit: "" };
+  }
+
+  const num = Number(state);
+  if (!Number.isFinite(num)) {
+    return { formattedValue: state, formattedUnit: unit };
+  }
+
+  // Apply custom scale multiplier if defined
+  let scaledNum = num;
+  if (config?.scaleMultiplier !== undefined && config.scaleMultiplier !== 1) {
+    scaledNum = num * config.scaleMultiplier;
+  }
+
+  // Apply decimal places precision override (fallback to entity precision or 2)
+  const precision = config?.decimalPlaces !== undefined 
+    ? config.decimalPlaces 
+    : (entity?.displayPrecision !== undefined ? entity.displayPrecision : undefined);
+
+  const formattedValue = precision !== undefined 
+    ? scaledNum.toFixed(precision) 
+    : String(scaledNum);
+
+  return { formattedValue, formattedUnit: unit };
 }
 
 /**
@@ -54,7 +98,7 @@ export function formatSensor(
   format?: string,
   options: FormatSensorOptions = {}
 ): string {
-  const { hideUnavailable = false, useShortId = false } = options;
+  const { hideUnavailable = false, useShortId = false, numericConfig } = options;
 
   const friendlyName = entity?.attributes?.friendly_name as string | undefined;
   const fallbackId = useShortId ? entityId.split(".")[1] : entityId;
@@ -71,10 +115,8 @@ export function formatSensor(
     if (sensorState === "unavailable" || sensorState === "unknown") {
       return hideUnavailable ? "" : sensorState;
     }
-    const unit = entity.attributes?.unit_of_measurement
-      ? ` ${entity.attributes.unit_of_measurement}`
-      : "";
-    return `${formatStateValue(sensorState, entity.displayPrecision)}${unit}`;
+    const { formattedValue, formattedUnit } = formatNumericValue(sensorState, entity, numericConfig);
+    return `${formattedValue}${formattedUnit ? ` ${formattedUnit}` : ""}`;
   }
 
   if (!entity) {
@@ -94,11 +136,8 @@ export function formatSensor(
         : `${label}: ${sensorState}`;
   }
 
-  const unit = entity.attributes?.unit_of_measurement
-    ? ` ${entity.attributes.unit_of_measurement}`
-    : "";
-
-  const value = `${formatStateValue(sensorState, entity.displayPrecision)}${unit}`;
+  const { formattedValue, formattedUnit } = formatNumericValue(sensorState, entity, numericConfig);
+  const value = `${formattedValue}${formattedUnit ? ` ${formattedUnit}` : ""}`;
   return format ? applyFormat(format, label, value) : `${label}: ${value}`;
 }
 

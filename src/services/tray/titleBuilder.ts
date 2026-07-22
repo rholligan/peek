@@ -59,12 +59,13 @@ export function buildMenuBarTitle(
       const entity = states.get(item);
       const customName = settings.menuBarSensorNames?.[item];
       const sensorFormat = settings.sensorFormats?.[item] || settings.menuBarFormat;
+      const numericConfig = settings.sensorConfigs?.[item];
       formatted = formatSensor(
         item,
         entity,
         customName,
         sensorFormat,
-        { hideUnavailable: true, useShortId: true }
+        { hideUnavailable: true, useShortId: true, numericConfig }
       );
     }
 

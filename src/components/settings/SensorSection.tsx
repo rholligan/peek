@@ -31,6 +31,7 @@ import {
   cleanupSensorName,
   cn,
   getSensorDisplayInfo,
+  type SensorConfig,
 } from "@/shared";
 
 /** Key for accessing sensor list in Settings */
@@ -86,6 +87,7 @@ export const SensorSection = memo(function SensorSection({
   const namesKey = sensorNamesKeyMap[listKey];
   const sensorNames = settings[namesKey];
   const sensorFormats = settings.sensorFormats || {};
+  const sensorConfigs = settings.sensorConfigs || {};
 
   // Make this section a droppable container for cross-list drops
   const { setNodeRef } = useDroppable({ id: listKey });
@@ -140,7 +142,7 @@ export const SensorSection = memo(function SensorSection({
   }, [sensorToRemove, handleRemove]);
 
   const handleSaveSensorSettings = useCallback(
-    (entityId: string, name: string, format: string) => {
+    (entityId: string, name: string, format: string, config?: SensorConfig) => {
       const names = { ...sensorNames };
       if (name) {
         names[entityId] = name;
@@ -155,12 +157,20 @@ export const SensorSection = memo(function SensorSection({
         delete formats[entityId];
       }
 
+      const configs = { ...settings.sensorConfigs };
+      if (config && (config.scaleMultiplier !== undefined || config.customUnit !== undefined || config.decimalPlaces !== undefined)) {
+        configs[entityId] = config;
+      } else {
+        delete configs[entityId];
+      }
+
       savePartial({
         [namesKey]: names,
         sensorFormats: formats,
+        sensorConfigs: configs,
       });
     },
-    [sensorNames, settings.sensorFormats, namesKey, savePartial]
+    [sensorNames, settings.sensorFormats, settings.sensorConfigs, namesKey, savePartial]
   );
 
   return (
@@ -206,9 +216,10 @@ export const SensorSection = memo(function SensorSection({
                           originalName={originalName}
                           customName={customName}
                           customFormat={sensorFormats[entityId] || ""}
+                          customConfig={sensorConfigs[entityId]}
                           sensorValue={sensorValue}
-                          onSave={(name, format) =>
-                            handleSaveSensorSettings(entityId, name, format)
+                          onSave={(name, format, config) =>
+                            handleSaveSensorSettings(entityId, name, format, config)
                           }
                           onRemove={() =>
                             setSensorToRemove({

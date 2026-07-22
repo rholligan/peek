@@ -96,12 +96,13 @@ async function buildSensorItems(
     const entity = states.get(entityId);
     const customName = settings.dropdownSensorNames?.[entityId];
     const customFormat = settings.sensorFormats?.[entityId] || settings.dropdownFormat;
+    const numericConfig = settings.sensorConfigs?.[entityId];
     const text = formatSensor(
       entityId,
       entity,
       customName,
       customFormat,
-      {}
+      { numericConfig }
     );
 
     const menuItem = await MenuItem.new({

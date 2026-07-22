@@ -8,6 +8,16 @@
 /** UI color scheme preference */
 export type Theme = 'system' | 'light' | 'dark';
 
+/** Custom numeric configurations per sensor */
+export interface SensorConfig {
+  /** Scale factor to multiply the raw value by (e.g. 0.001) */
+  scaleMultiplier?: number;
+  /** Custom unit string to display (e.g. "kW") */
+  customUnit?: string;
+  /** Custom decimal places precision override */
+  decimalPlaces?: number;
+}
+
 /**
  * Application settings persisted to config.json.
  */
@@ -48,6 +58,8 @@ export interface Settings {
   menuBarCycleIntervalSeconds: number;
   /** Custom format overrides per sensor entity ID */
   sensorFormats: Record<string, string>;
+  /** Custom numeric configurations per sensor entity ID */
+  sensorConfigs: Record<string, SensorConfig>;
   /** Whether to automatically start the app when the user logs in */
   autoStartOnLogin: boolean;
   /** UI color scheme preference */

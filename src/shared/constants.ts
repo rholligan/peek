@@ -53,6 +53,7 @@ export const DEFAULT_SETTINGS: Settings = {
   menuBarCycleIntervalEnabled: false,
   menuBarCycleIntervalSeconds: 10,
   sensorFormats: {},
+  sensorConfigs: {},
   autoStartOnLogin: false,
   theme: 'system',
   lastUpdateCheck: '',

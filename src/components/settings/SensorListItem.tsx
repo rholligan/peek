@@ -9,7 +9,7 @@ import type { DraggableAttributes } from "@dnd-kit/core";
 import type { SyntheticListenerMap } from "@dnd-kit/core/dist/hooks/utilities";
 import { IconButton } from "@/components/ui/IconButton";
 import { Tag, TagLabel, TagStartElement } from "@/components/ui/Tag";
-import { cn } from "@/shared";
+import { cn, type SensorConfig } from "@/shared";
 
 /** Props for drag handle from useSortable hook */
 interface DragHandleProps {
@@ -26,10 +26,12 @@ interface SensorListItemProps {
   customName: string;
   /** Custom format override for this sensor */
   customFormat: string;
+  /** Custom numeric config for this sensor */
+  customConfig?: SensorConfig;
   /** Current sensor value with unit */
   sensorValue: string;
   /** Callback when sensor settings are saved */
-  onSave: (name: string, format: string) => void;
+  onSave: (name: string, format: string, config?: SensorConfig) => void;
   /** Callback when remove button is clicked */
   onRemove: () => void;
   /** Drag handle props from useSortable */
@@ -49,6 +51,7 @@ const SensorListItem = memo(
       originalName,
       customName,
       customFormat,
+      customConfig,
       sensorValue,
       onSave,
       onRemove,
@@ -60,10 +63,16 @@ const SensorListItem = memo(
     const [isEditing, setIsEditing] = useState(false);
     const [localName, setLocalName] = useState(customName);
     const [localFormat, setLocalFormat] = useState(customFormat);
+    const [localScale, setLocalScale] = useState(customConfig?.scaleMultiplier?.toString() || "");
+    const [localUnit, setLocalUnit] = useState(customConfig?.customUnit || "");
+    const [localDecimals, setLocalDecimals] = useState(customConfig?.decimalPlaces?.toString() || "");
 
     const handleEdit = () => {
       setLocalName(customName);
       setLocalFormat(customFormat);
+      setLocalScale(customConfig?.scaleMultiplier?.toString() || "");
+      setLocalUnit(customConfig?.customUnit || "");
+      setLocalDecimals(customConfig?.decimalPlaces?.toString() || "");
       setIsEditing(true);
     };
 
@@ -78,7 +87,18 @@ const SensorListItem = memo(
       // If the input is completely empty or just spaces, save as " " (blank title)
       // Otherwise, save the trimmed name.
       const finalName = trimmedName === "" ? " " : trimmedName;
-      onSave(finalName, localFormat.trim());
+
+      // Parse advanced numeric configs
+      const scaleVal = parseFloat(localScale);
+      const decimalsVal = parseInt(localDecimals, 10);
+
+      const numericConfig: SensorConfig = {
+        scaleMultiplier: isNaN(scaleVal) ? undefined : scaleVal,
+        customUnit: localUnit.trim() === "" ? undefined : localUnit.trim(),
+        decimalPlaces: isNaN(decimalsVal) ? undefined : decimalsVal,
+      };
+
+      onSave(finalName, localFormat.trim(), numericConfig);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -222,6 +242,52 @@ const SensorListItem = memo(
                         Bracketed
                       </button>
                     </div>
+                  </div>
+                )}
+                {!isGroup && !isNaN(parseFloat(sensorValue)) && (
+                  <div className="border border-border/70 bg-bg-panel/40 rounded-xl p-3.5 space-y-3.5 mt-3 select-none">
+                    <h5 className="text-2xs font-bold text-fg uppercase tracking-wider font-sans">Advanced Number Formatting</h5>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-3xs text-fg-muted font-semibold uppercase">Multiplier</label>
+                        <input
+                          type="text"
+                          value={localScale}
+                          onChange={(e) => setLocalScale(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="1.0"
+                          className="font-medium text-xs bg-bg-panel rounded-lg px-2.5 py-1.5 border border-border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full transition-colors"
+                          title="Scale factor multiplier (e.g. 0.001 to convert W to kW)"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-3xs text-fg-muted font-semibold uppercase">Unit Symbol</label>
+                        <input
+                          type="text"
+                          value={localUnit}
+                          onChange={(e) => setLocalUnit(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="e.g., kW"
+                          className="font-medium text-xs bg-bg-panel rounded-lg px-2.5 py-1.5 border border-border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full transition-colors"
+                          title="Custom display unit symbol"
+                        />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-3xs text-fg-muted font-semibold uppercase">Decimals</label>
+                        <input
+                          type="text"
+                          value={localDecimals}
+                          onChange={(e) => setLocalDecimals(e.target.value)}
+                          onKeyDown={handleKeyDown}
+                          placeholder="Auto"
+                          className="font-medium text-xs bg-bg-panel rounded-lg px-2.5 py-1.5 border border-border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full transition-colors"
+                          title="Override number of decimal places (e.g. 2)"
+                        />
+                      </div>
+                    </div>
+                    <span className="text-3xs text-fg-muted pl-0.5 block">
+                      Excel-style scaling: set multiplier to <code className="bg-bg-muted/50 px-1 rounded">0.001</code> and unit to <code className="bg-bg-muted/50 px-1 rounded">kW</code> to convert W to kW.
+                    </span>
                   </div>
                 )}
               </div>

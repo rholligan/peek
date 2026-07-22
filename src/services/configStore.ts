@@ -35,6 +35,11 @@ const configSchema = z.object({
   menuBarCycleIntervalEnabled: z.boolean().optional(),
   menuBarCycleIntervalSeconds: z.number().int().min(5).max(60).optional(),
   sensorFormats: z.record(z.string(), z.string()).optional(),
+  sensorConfigs: z.record(z.string(), z.object({
+    scaleMultiplier: z.number().optional(),
+    customUnit: z.string().optional(),
+    decimalPlaces: z.number().int().min(0).max(10).optional(),
+  })).optional(),
   autoStartOnLogin: z.boolean().optional(),
   theme: z.enum(['system', 'light', 'dark']).optional(),
   lastUpdateCheck: z.string().optional(),
