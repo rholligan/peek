@@ -28,6 +28,8 @@ interface SensorListItemProps {
   customFormat: string;
   /** Custom numeric config for this sensor */
   customConfig?: SensorConfig;
+  /** Default unit of measurement from Home Assistant */
+  defaultUnit?: string;
   /** Current sensor value with unit */
   sensorValue: string;
   /** Callback when sensor settings are saved */
@@ -52,6 +54,7 @@ const SensorListItem = memo(
       customName,
       customFormat,
       customConfig,
+      defaultUnit = "",
       sensorValue,
       onSave,
       onRemove,
@@ -335,6 +338,16 @@ const SensorListItem = memo(
                     </TagStartElement>
                     <TagLabel>{sensorValue}</TagLabel>
                   </Tag>
+                  {isEditing && localUnit.trim() !== "" && defaultUnit !== localUnit.trim() && (
+                    <Tag size="sm" variant="subtle" colorPalette="yellow">
+                      <TagLabel>{defaultUnit || "none"} ➔ {localUnit.trim()}</TagLabel>
+                    </Tag>
+                  )}
+                  {!isEditing && customConfig?.customUnit && defaultUnit !== customConfig.customUnit && (
+                    <Tag size="sm" variant="subtle" colorPalette="yellow">
+                      <TagLabel>{defaultUnit || "none"} ➔ {customConfig.customUnit}</TagLabel>
+                    </Tag>
+                  )}
                 </>
               )}
             </div>

@@ -409,7 +409,7 @@ export function SensorsTab() {
             >
               <Select
                 value={settings.menuBarPageTransitionStyle}
-                onChange={(e) => savePartial({ menuBarPageTransitionStyle: e.target.value as "none" | "fade" | "scramble" | "roll" })}
+                onChange={(e) => savePartial({ menuBarPageTransitionStyle: e.target.value as "none" | "fade" | "scramble" | "roll" | "typewriter" | "slide" })}
                 disabled={!settings.menuBarPaginationEnabled}
                 className="w-44"
               >
@@ -417,7 +417,26 @@ export function SensorsTab() {
                 <option value="fade">Flash Fade</option>
                 <option value="scramble">Digital Scramble</option>
                 <option value="roll">Slot Machine Roll</option>
+                <option value="typewriter">Typewriter</option>
+                <option value="slide">Slide Push</option>
               </Select>
+            </Field>
+
+            <Separator />
+
+            <Field
+              label="Page transition duration"
+              helperText="Transition duration in milliseconds (50ms to 2000ms)."
+              orientation="horizontal"
+            >
+              <NumberStepperInput
+                value={settings.menuBarPageTransitionDuration || 300}
+                onChange={(val) => savePartial({ menuBarPageTransitionDuration: val })}
+                min={50}
+                max={2000}
+                disabled={!settings.menuBarPaginationEnabled || settings.menuBarPageTransitionStyle === "none"}
+                ariaLabel="Page transition duration"
+              />
             </Field>
 
             {settings.menuBarPaginationEnabled && settings.menuBarSensors.length > 0 && (

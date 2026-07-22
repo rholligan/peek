@@ -57,7 +57,9 @@ export interface Settings {
   /** Seconds between automatic menu bar page cycles (>= 5) */
   menuBarCycleIntervalSeconds: number;
   /** Transition effect style when rotating menu bar pages */
-  menuBarPageTransitionStyle: 'none' | 'fade' | 'scramble' | 'roll';
+  menuBarPageTransitionStyle: 'none' | 'fade' | 'scramble' | 'roll' | 'typewriter' | 'slide';
+  /** Page transition duration in milliseconds (e.g. 300) */
+  menuBarPageTransitionDuration: number;
   /** Custom format overrides per sensor entity ID */
   sensorFormats: Record<string, string>;
   /** Custom numeric configurations per sensor entity ID */

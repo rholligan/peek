@@ -220,13 +220,15 @@ let activeTransitionTimer: ReturnType<typeof setInterval> | null = null;
  * @param source - The starting title string
  * @param target - The ending title string
  * @param tray - The Tauri TrayIcon instance
- * @param style - The animation style ('fade' | 'scramble' | 'roll')
+ * @param style - The animation style ('fade' | 'scramble' | 'roll' | 'typewriter' | 'slide')
+ * @param duration - Custom duration in milliseconds (e.g., 300)
  */
 function animateTitleTransition(
   source: string,
   target: string,
   tray: TrayIcon,
-  style: "fade" | "scramble" | "roll"
+  style: "fade" | "scramble" | "roll" | "typewriter" | "slide",
+  duration: number
 ): Promise<void> {
   return new Promise<void>((resolve) => {
     if (activeTransitionTimer) {
@@ -234,8 +236,10 @@ function animateTitleTransition(
       activeTransitionTimer = null;
     }
 
-    const steps = 6;
-    const interval = 25; // 25ms per step -> 150ms total animation duration (super snappy!)
+    // Gentle IPC frequency: 5 steps (4 intermediate frames + 1 final frame)
+    // For 300ms, this is 60ms interval, which is perfectly friendly on the Tauri IPC bridge!
+    const steps = 5;
+    const interval = Math.max(10, Math.floor(duration / steps));
     let currentStep = 0;
 
     activeTransitionTimer = setInterval(() => {
@@ -265,13 +269,13 @@ function animateTitleTransition(
  * @param source - The source starting string
  * @param target - The target ending string
  * @param ratio - Progress ratio from 0 to 1
- * @param style - Transition style ('fade' | 'scramble' | 'roll')
+ * @param style - Transition style ('fade' | 'scramble' | 'roll' | 'typewriter' | 'slide')
  */
 function blendStrings(
   source: string,
   target: string,
   ratio: number,
-  style: "fade" | "scramble" | "roll"
+  style: "fade" | "scramble" | "roll" | "typewriter" | "slide"
 ): string {
   const maxLength = Math.max(source.length, target.length);
   let result = "";
@@ -290,6 +294,32 @@ function blendStrings(
       }
     }
     return result;
+  }
+
+  if (style === "typewriter") {
+    // Typewriter effect: erase source char-by-char, then type target char-by-char
+    if (ratio < 0.5) {
+      const eraseRatio = 1 - (ratio * 2); // 1.0 down to 0.0
+      const charsToKeep = Math.floor(source.length * eraseRatio);
+      return source.slice(0, charsToKeep);
+    } else {
+      const typeRatio = (ratio - 0.5) * 2; // 0.0 up to 1.0
+      const charsToShow = Math.floor(target.length * typeRatio);
+      return target.slice(0, charsToShow);
+    }
+  }
+
+  if (style === "slide") {
+    // Slide effect: shift characters out with leading spaces, then bring target in from left
+    if (ratio < 0.5) {
+      const shiftRatio = ratio * 2; // 0.0 to 1.0
+      const spacesCount = Math.floor(source.length * shiftRatio);
+      return " ".repeat(spacesCount) + source.slice(0, source.length - spacesCount);
+    } else {
+      const shiftRatio = (ratio - 0.5) * 2; // 0.0 to 1.0
+      const spacesCount = target.length - Math.floor(target.length * shiftRatio);
+      return " ".repeat(spacesCount) + target.slice(spacesCount);
+    }
   }
 
   if (style === "roll") {
@@ -366,7 +396,13 @@ function updateMenuBarTitle(
     .then(() => {
       if (titleToSet === state.latestTitle) {
         if (settings.menuBarPageTransitionStyle !== "none" && oldTitle && oldTitle !== titleToSet && state.status === "connected") {
-          return animateTitleTransition(oldTitle, titleToSet, state.tray!, settings.menuBarPageTransitionStyle);
+          return animateTitleTransition(
+            oldTitle,
+            titleToSet,
+            state.tray!,
+            settings.menuBarPageTransitionStyle,
+            settings.menuBarPageTransitionDuration || 300
+          );
         } else {
           return state.tray?.setTitle(titleToSet);
         }

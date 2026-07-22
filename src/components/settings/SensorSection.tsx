@@ -200,7 +200,7 @@ export const SensorSection = memo(function SensorSection({
             >
               <ul className="list-none m-0 p-0 mb-4 space-y-3">
                 {sensorList.map((entityId) => {
-                  const { originalName, customName, sensorValue } =
+                  const { originalName, customName, sensorValue, unit } =
                     getSensorDisplayInfo(entityId, states.get(entityId), sensorNames);
 
                   return (
@@ -217,6 +217,7 @@ export const SensorSection = memo(function SensorSection({
                           customName={customName}
                           customFormat={sensorFormats[entityId] || ""}
                           customConfig={sensorConfigs[entityId]}
+                          defaultUnit={unit}
                           sensorValue={sensorValue}
                           onSave={(name, format, config) =>
                             handleSaveSensorSettings(entityId, name, format, config)
