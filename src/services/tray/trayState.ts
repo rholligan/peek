@@ -36,6 +36,8 @@ export interface TrayState {
   itemRefs: Map<string, MenuItem>;
   /** Last-known text per item ID — skip no-op setText() calls */
   itemTexts: Map<string, string>;
+  /** Whether a menu bar page transition animation is actively running */
+  isTransitioning: boolean;
 }
 
 /**
@@ -54,6 +56,7 @@ export function createInitialState(): TrayState {
     currentMenu: null,
     itemRefs: new Map(),
     itemTexts: new Map(),
+    isTransitioning: false,
   };
 }
 

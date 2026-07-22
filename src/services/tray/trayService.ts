@@ -230,6 +230,8 @@ function animateTitleTransition(
   style: "fade" | "scramble" | "roll" | "typewriter" | "slide",
   duration: number
 ): Promise<void> {
+  state.isTransitioning = true;
+
   return new Promise<void>((resolve) => {
     if (activeTransitionTimer) {
       clearInterval(activeTransitionTimer);
@@ -249,8 +251,14 @@ function animateTitleTransition(
           activeTransitionTimer = null;
         }
         tray.setTitle(target)
-          .then(() => resolve())
-          .catch(() => resolve());
+          .then(() => {
+            state.isTransitioning = false;
+            resolve();
+          })
+          .catch(() => {
+            state.isTransitioning = false;
+            resolve();
+          });
         return;
       }
 
@@ -386,6 +394,10 @@ function updateMenuBarTitle(
   settings: Settings
 ): void {
   if (!state.tray) return;
+
+  // If a page transition animation is actively running, lock/abort incoming background updates
+  if (state.isTransitioning) return;
+
   const titleToSet = buildMenuBarTitle(states, settings, state.status);
 
   if (titleToSet === state.latestTitle) return;
