@@ -52,6 +52,7 @@ export const DEFAULT_SETTINGS: Settings = {
   menuBarAutoReturnMinutes: 5,
   menuBarCycleIntervalEnabled: false,
   menuBarCycleIntervalSeconds: 10,
+  menuBarPageTransitionsEnabled: true,
   sensorFormats: {},
   sensorConfigs: {},
   autoStartOnLogin: false,

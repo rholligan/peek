@@ -56,6 +56,8 @@ export interface Settings {
   menuBarCycleIntervalEnabled: boolean;
   /** Seconds between automatic menu bar page cycles (>= 5) */
   menuBarCycleIntervalSeconds: number;
+  /** Whether to animate page changes with a smooth scramble/dissolve transition */
+  menuBarPageTransitionsEnabled: boolean;
   /** Custom format overrides per sensor entity ID */
   sensorFormats: Record<string, string>;
   /** Custom numeric configurations per sensor entity ID */

@@ -399,6 +399,21 @@ export function SensorsTab() {
               />
             </Field>
 
+            <Separator />
+
+            <Field
+              label="Page transitions"
+              helperText="Animate page rotations with a smooth, high-tech character scrambling dissolve effect."
+              orientation="horizontal"
+            >
+              <Switch
+                checked={settings.menuBarPageTransitionsEnabled}
+                onCheckedChange={(checked) => savePartial({ menuBarPageTransitionsEnabled: checked })}
+                disabled={!settings.menuBarPaginationEnabled}
+                aria-label="Enable page transitions"
+              />
+            </Field>
+
             {settings.menuBarPaginationEnabled && settings.menuBarSensors.length > 0 && (
               <>
                 <Separator />
@@ -451,6 +466,27 @@ export function SensorsTab() {
                 </div>
               </>
             )}
+
+            <Separator />
+            <div className="bg-bg-panel/20 border border-border/60 rounded-xl p-4 space-y-2 select-none">
+              <h4 className="font-bold text-xs text-fg uppercase tracking-widest flex items-center gap-1.5">
+                <span>💡 Grouping & Layout Guide</span>
+              </h4>
+              <ul className="list-disc pl-4 text-xs text-fg-muted space-y-1.5">
+                <li>
+                  <strong>Dynamic Groups:</strong> Click <code className="bg-bg-muted/50 px-1 rounded">Add Group / Divider</code> to insert titles or separators (e.g. <code className="bg-bg-muted/50 px-1 rounded font-mono">Home: </code> or <code className="bg-bg-muted/50 px-1 rounded font-mono">│</code>). Drag and drop them anywhere to segment your sensors!
+                </li>
+                <li>
+                  <strong>Custom Page Breaks:</strong> Use <code className="bg-bg-muted/50 px-1 rounded">Add Page Break</code> to place manual split boundaries. This overrides automatic sizing and lets you group sensors onto custom pages of any size.
+                </li>
+                <li>
+                  <strong>Advanced Numeric Formatting:</strong> Click the pencil edit icon next to any numeric sensor. You can set multiplier scaling, custom unit suffixes, and override decimal places in one place.
+                </li>
+                <li>
+                  <strong>Seamless Transitions:</strong> Keep the Page transitions toggle enabled above to animate menu bar page shifts with a high-tech scramble dissolve effect instead of a harsh text jump!
+                </li>
+              </ul>
+            </div>
           </div>
         </CardBody>
       </Card>

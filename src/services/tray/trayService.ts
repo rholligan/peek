@@ -308,7 +308,7 @@ function updateMenuBarTitle(
   state.pendingTitleUpdate = state.pendingTitleUpdate
     .then(() => {
       if (titleToSet === state.latestTitle) {
-        if (oldTitle && oldTitle !== titleToSet && state.status === "connected") {
+        if (settings.menuBarPageTransitionsEnabled && oldTitle && oldTitle !== titleToSet && state.status === "connected") {
           return animateTitleTransition(oldTitle, titleToSet, state.tray!);
         } else {
           return state.tray?.setTitle(titleToSet);
