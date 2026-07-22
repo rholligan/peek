@@ -54,6 +54,7 @@ export const DEFAULT_SETTINGS: Settings = {
   menuBarCycleIntervalSeconds: 10,
   menuBarPageTransitionStyle: 'fade',
   menuBarPageTransitionDuration: 300,
+  menuBarPageWidthStabilizationEnabled: true,
   sensorFormats: {},
   sensorConfigs: {},
   autoStartOnLogin: false,

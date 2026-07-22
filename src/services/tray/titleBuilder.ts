@@ -3,44 +3,18 @@
  * @module services/tray/titleBuilder
  */
 
-import { getPagedSensors } from "./pageState";
+import { getPagedSensors, getPages } from "./pageState";
 import { formatSensor } from "./sensorFormatter";
 import { UI_LIMITS, type HaEntityState, type HaConnectionStatus, type Settings } from "@/shared";
 
 /**
- * Build the menu bar title from menuBarSensors.
- * Returns status text when not connected, sensor values when connected.
- *
- * @param states - Current entity states
- * @param settings - App settings with sensor configuration
- * @param status - Current connection status
- * @returns Menu bar title string
- *
- * @example
- * // When connected with sensors
- * buildMenuBarTitle(states, settings, "connected") // "72°F | 45%"
- *
- * // When disconnected
- * buildMenuBarTitle(states, settings, "disconnected") // "Disconnected"
+ * Helper to build the raw title text for a specific slice of sensors/groups.
  */
-export function buildMenuBarTitle(
+function buildTitleForSensors(
+  sensorsList: string[],
   states: Map<string, HaEntityState>,
-  settings: Settings,
-  status: HaConnectionStatus
+  settings: Settings
 ): string {
-  // Show status indicator when not connected
-  if (status !== "connected") {
-    switch (status) {
-      case "connecting":
-        return "Connecting...";
-      case "auth_invalid":
-        return "Auth Error";
-      default:
-        return "Disconnected";
-    }
-  }
-  if (settings.menuBarSensors.length === 0) return "";
-
   // Build separator with spaces around it (empty separator = single space)
   const separatorChar = settings.menuBarSeparator ?? "|";
   const separator = separatorChar ? ` ${separatorChar} ` : " ";
@@ -48,7 +22,7 @@ export function buildMenuBarTitle(
   let title = "";
   let skipNextSeparator = false;
 
-  for (const item of getPagedSensors(settings)) {
+  for (const item of sensorsList) {
     let formatted = "";
     let isGroup = false;
 
@@ -88,6 +62,65 @@ export function buildMenuBarTitle(
   // Handle total length truncation
   if (title.length > UI_LIMITS.MAX_MENU_BAR_LENGTH) {
     title = title.slice(0, UI_LIMITS.MAX_MENU_BAR_LENGTH - 3) + "...";
+  }
+
+  return title;
+}
+
+/**
+ * Build the menu bar title from menuBarSensors.
+ * Returns status text when not connected, sensor values when connected.
+ *
+ * @param states - Current entity states
+ * @param settings - App settings with sensor configuration
+ * @param status - Current connection status
+ * @returns Menu bar title string
+ *
+ * @example
+ * // When connected with sensors
+ * buildMenuBarTitle(states, settings, "connected") // "72°F | 45%"
+ *
+ * // When disconnected
+ * buildMenuBarTitle(states, settings, "disconnected") // "Disconnected"
+ */
+export function buildMenuBarTitle(
+  states: Map<string, HaEntityState>,
+  settings: Settings,
+  status: HaConnectionStatus
+): string {
+  // Show status indicator when not connected
+  if (status !== "connected") {
+    switch (status) {
+      case "connecting":
+        return "Connecting...";
+      case "auth_invalid":
+        return "Auth Error";
+      default:
+        return "Disconnected";
+    }
+  }
+  if (settings.menuBarSensors.length === 0) return "";
+
+  // 1. Build the base title for the current paged slice
+  const pagedSensors = getPagedSensors(settings);
+  let title = buildTitleForSensors(pagedSensors, states, settings);
+
+  // 2. Stabilize the width if enabled, padding shorter pages with trailing spaces to match the maximum width
+  if (settings.menuBarPageWidthStabilizationEnabled && settings.menuBarPaginationEnabled) {
+    const pages = getPages(settings);
+    if (pages.length > 1) {
+      let maxLength = 0;
+      for (const pageSensors of pages) {
+        const pageTitle = buildTitleForSensors(pageSensors, states, settings);
+        maxLength = Math.max(maxLength, pageTitle.length);
+      }
+
+      // Pad our current page title with standard spaces to match maxLength
+      const paddingNeeded = maxLength - title.length;
+      if (paddingNeeded > 0) {
+        title += " ".repeat(paddingNeeded);
+      }
+    }
   }
 
   return title;

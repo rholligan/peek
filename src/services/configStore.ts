@@ -36,6 +36,7 @@ const configSchema = z.object({
   menuBarCycleIntervalSeconds: z.number().int().min(5).max(60).optional(),
   menuBarPageTransitionStyle: z.enum(['none', 'fade', 'scramble', 'roll', 'typewriter', 'slide']).optional(),
   menuBarPageTransitionDuration: z.number().int().min(50).max(2000).optional(),
+  menuBarPageWidthStabilizationEnabled: z.boolean().optional(),
   sensorFormats: z.record(z.string(), z.string()).optional(),
   sensorConfigs: z.record(z.string(), z.object({
     scaleMultiplier: z.number().optional(),

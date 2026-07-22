@@ -439,6 +439,21 @@ export function SensorsTab() {
               />
             </Field>
 
+            <Separator />
+
+            <Field
+              label="Stabilize menu bar width"
+              helperText="Pad shorter pages with spaces to keep menu bar width 100% constant during page transitions, preventing surrounding system icons from shifting."
+              orientation="horizontal"
+            >
+              <Switch
+                checked={settings.menuBarPageWidthStabilizationEnabled}
+                onCheckedChange={(checked) => savePartial({ menuBarPageWidthStabilizationEnabled: checked })}
+                disabled={!settings.menuBarPaginationEnabled}
+                aria-label="Stabilize menu bar width"
+              />
+            </Field>
+
             {settings.menuBarPaginationEnabled && settings.menuBarSensors.length > 0 && (
               <>
                 <Separator />

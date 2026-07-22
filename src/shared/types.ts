@@ -60,6 +60,8 @@ export interface Settings {
   menuBarPageTransitionStyle: 'none' | 'fade' | 'scramble' | 'roll' | 'typewriter' | 'slide';
   /** Page transition duration in milliseconds (e.g. 300) */
   menuBarPageTransitionDuration: number;
+  /** Whether to stabilize the menu bar width with space padding to prevent surrounding icons from shifting */
+  menuBarPageWidthStabilizationEnabled: boolean;
   /** Custom format overrides per sensor entity ID */
   sensorFormats: Record<string, string>;
   /** Custom numeric configurations per sensor entity ID */
