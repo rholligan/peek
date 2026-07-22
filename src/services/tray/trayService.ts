@@ -280,15 +280,15 @@ function blendStrings(
   let result = "";
 
   if (style === "fade") {
-    // Fade/Blink effect: dissolve out to spaces, then dissolve in to target
+    // Fade/Blink effect: dissolve out to non-breaking spaces (\u00A0), then dissolve in to target
     for (let i = 0; i < maxLength; i++) {
       if (ratio < 0.5) {
         if (i < source.length) {
-          result += Math.random() < ratio * 2 ? " " : source[i];
+          result += Math.random() < ratio * 2 ? "\u00A0" : source[i];
         }
       } else {
         if (i < target.length) {
-          result += Math.random() < (ratio - 0.5) * 2 ? target[i] : " ";
+          result += Math.random() < (ratio - 0.5) * 2 ? target[i] : "\u00A0";
         }
       }
     }
@@ -297,35 +297,36 @@ function blendStrings(
 
   if (style === "typewriter") {
     // Typewriter effect: erase source char-by-char, then type target char-by-char
+    // Pad erased characters with \u00A0 to maintain 100% stable layout width
     if (ratio < 0.5) {
       const eraseRatio = 1 - (ratio * 2); // 1.0 down to 0.0
       const charsToKeep = Math.floor(source.length * eraseRatio);
-      return source.slice(0, charsToKeep);
+      return source.slice(0, charsToKeep) + "\u00A0".repeat(source.length - charsToKeep);
     } else {
       const typeRatio = (ratio - 0.5) * 2; // 0.0 up to 1.0
       const charsToShow = Math.floor(target.length * typeRatio);
-      return target.slice(0, charsToShow);
+      return target.slice(0, charsToShow) + "\u00A0".repeat(target.length - charsToShow);
     }
   }
 
   if (style === "slide") {
-    // Slide effect: shift characters out with leading spaces, then bring target in from left
+    // Slide effect: shift characters out with leading \u00A0, then bring target in from left
     if (ratio < 0.5) {
       const shiftRatio = ratio * 2; // 0.0 to 1.0
       const spacesCount = Math.floor(source.length * shiftRatio);
-      return " ".repeat(spacesCount) + source.slice(0, source.length - spacesCount);
+      return "\u00A0".repeat(spacesCount) + source.slice(0, source.length - spacesCount);
     } else {
       const shiftRatio = (ratio - 0.5) * 2; // 0.0 to 1.0
       const spacesCount = target.length - Math.floor(target.length * shiftRatio);
-      return " ".repeat(spacesCount) + target.slice(spacesCount);
+      return "\u00A0".repeat(spacesCount) + target.slice(spacesCount);
     }
   }
 
   if (style === "roll") {
     // Slot machine roll effect: linearly interpolate digits, snap non-digits at 50%
     for (let i = 0; i < maxLength; i++) {
-      const srcChar = i < source.length ? source[i] : " ";
-      const tgtChar = i < target.length ? target[i] : " ";
+      const srcChar = i < source.length ? source[i] : "\u00A0";
+      const tgtChar = i < target.length ? target[i] : "\u00A0";
       
       if (srcChar === tgtChar) {
         result += tgtChar;
@@ -365,7 +366,7 @@ function blendStrings(
           result += source[i];
         }
       } else {
-        result += " ";
+        result += "\u00A0";
       }
     }
   }
