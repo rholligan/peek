@@ -49,6 +49,13 @@ function computeMenuItemTexts(
   if (settings) {
     for (let i = 0; i < settings.dropdownSensors.length; i++) {
       const entityId = settings.dropdownSensors[i];
+      
+      if (entityId.startsWith("group:")) {
+        const groupText = settings.dropdownSensorNames?.[entityId] || "Group";
+        texts.set(`sensor-${i}`, groupText);
+        continue;
+      }
+
       const entity = states.get(entityId);
       const customName = settings.dropdownSensorNames?.[entityId];
       const customFormat = settings.sensorFormats?.[entityId] || settings.dropdownFormat;

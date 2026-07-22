@@ -33,7 +33,6 @@ const configSchema = z.object({
   menuBarAutoReturnMinutes: z.number().int().min(1).max(120).optional(),
   menuBarCycleIntervalEnabled: z.boolean().optional(),
   menuBarCycleIntervalSeconds: z.number().int().min(5).max(60).optional(),
-  menuBarPageTitles: z.array(z.string()).optional(),
   sensorFormats: z.record(z.string(), z.string()).optional(),
   autoStartOnLogin: z.boolean().optional(),
   theme: z.enum(['system', 'light', 'dark']).optional(),

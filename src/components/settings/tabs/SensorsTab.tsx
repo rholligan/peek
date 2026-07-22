@@ -380,40 +380,6 @@ export function SensorsTab() {
                 ariaLabel="Cycle interval seconds"
               />
             </Field>
-
-            {settings.menuBarPaginationEnabled && settings.menuBarSensors.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-sm text-fg mb-1">Page/Group Titles</h4>
-                    <p className="text-xs text-fg-muted">Provide a custom title prefix for each page (e.g., &quot;Home&quot;, &quot;Office&quot;). Leave blank to hide.</p>
-                  </div>
-                  <div className="space-y-3 pl-2">
-                    {Array.from({ length: Math.ceil(settings.menuBarSensors.length / settings.menuBarSensorsPerPage) }).map((_, idx) => (
-                      <Field
-                        key={idx}
-                        label={`Page ${idx + 1} Title`}
-                        helperText={`Prefix for page ${idx + 1}.`}
-                        orientation="horizontal"
-                      >
-                        <input
-                          type="text"
-                          value={settings.menuBarPageTitles?.[idx] || ""}
-                          onChange={(e) => {
-                            const newTitles = [...(settings.menuBarPageTitles || [])];
-                            newTitles[idx] = e.target.value;
-                            savePartial({ menuBarPageTitles: newTitles });
-                          }}
-                          className="font-medium text-sm bg-bg-panel border border-border rounded-lg px-3 py-1.5 w-44 outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-colors"
-                          placeholder={`Page ${idx + 1}`}
-                        />
-                      </Field>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
           </div>
         </CardBody>
       </Card>

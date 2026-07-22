@@ -91,13 +91,17 @@ const SensorListItem = memo(
       }
     };
 
+    const isGroup = entityId.startsWith("group:");
+
     // Determine how to display the sensor name
     const isBlank = customName === " ";
     const hasOverride = customName !== "";
     const displayNameNode = isBlank ? (
-      <span className="text-fg-muted italic text-sm">(blank title)</span>
+      <span className="text-fg-muted italic text-sm">(blank)</span>
     ) : hasOverride ? (
       customName
+    ) : isGroup ? (
+      <span className="text-fg-muted italic text-sm">New Group:</span>
     ) : (
       <span className="text-fg-muted">{originalName}</span>
     );
@@ -114,68 +118,76 @@ const SensorListItem = memo(
             {isEditing ? (
               <div className="space-y-2.5 w-full pr-2">
                 <div className="flex flex-col gap-1">
-                  <label className="text-2xs text-fg-muted font-semibold uppercase tracking-wider">Display Name</label>
+                  <label className="text-2xs text-fg-muted font-semibold uppercase tracking-wider">
+                    {isGroup ? "Group Title / Divider Text" : "Display Name"}
+                  </label>
                   <input
                     type="text"
                     value={localName}
                     onChange={(e) => setLocalName(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={originalName}
-                    className="font-medium text-sm bg-bg-panel rounded-lg px-2.5 py-1.5 border border-border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full transition-colors"
-                  />
-                  <span className="text-3xs text-fg-muted pl-0.5">Leave empty or press spacebar for a blank/hidden title.</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex justify-between items-center">
-                    <label className="text-2xs text-fg-muted font-semibold uppercase tracking-wider">Format Override</label>
-                    <a
-                      href="https://github.com/tiagonoronha/peek#features"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-3xs text-blue-500 hover:text-blue-600 transition-colors hover:underline"
-                    >
-                      View Docs
-                    </a>
-                  </div>
-                  <input
-                    type="text"
-                    value={localFormat}
-                    onChange={(e) => setLocalFormat(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    placeholder="Use global format"
+                    placeholder={isGroup ? "e.g., Home: or │" : originalName}
                     className="font-medium text-sm bg-bg-panel rounded-lg px-2.5 py-1.5 border border-border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full transition-colors"
                   />
                   <span className="text-3xs text-fg-muted pl-0.5">
-                    Supports <code className="bg-bg-muted/50 px-1 rounded font-mono text-2xs">{"{name}"}</code> and <code className="bg-bg-muted/50 px-1 rounded font-mono text-2xs">{"{value}"}</code>.
+                    {isGroup
+                      ? "Enter custom text. Clear to hide this group element completely."
+                      : "Leave empty or press spacebar for a blank/hidden title."}
                   </span>
-                  <div className="flex items-center gap-1.5 flex-wrap mt-1.5 pl-0.5">
-                    <span className="text-3xs text-fg-muted font-semibold uppercase tracking-wider">Presets:</span>
-                    <button
-                      type="button"
-                      onClick={() => setLocalFormat("{value}")}
-                      className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
-                      title="Show only the value (e.g., '22°C' instead of 'Temp: 22°C')"
-                    >
-                      Value Only
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLocalFormat("{value} F")}
-                      className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
-                      title="Suffix a custom unit override (e.g., '22°C F')"
-                    >
-                      Custom Suffix
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setLocalFormat("{name} [{value}]")}
-                      className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
-                      title="Bracketed format (e.g., 'Temp [22°C]')"
-                    >
-                      Bracketed
-                    </button>
-                  </div>
                 </div>
+                {!isGroup && (
+                  <div className="flex flex-col gap-1">
+                    <div className="flex justify-between items-center">
+                      <label className="text-2xs text-fg-muted font-semibold uppercase tracking-wider">Format Override</label>
+                      <a
+                        href="https://github.com/tiagonoronha/peek#features"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-3xs text-blue-500 hover:text-blue-600 transition-colors hover:underline"
+                      >
+                        View Docs
+                      </a>
+                    </div>
+                    <input
+                      type="text"
+                      value={localFormat}
+                      onChange={(e) => setLocalFormat(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Use global format"
+                      className="font-medium text-sm bg-bg-panel rounded-lg px-2.5 py-1.5 border border-border focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none w-full transition-colors"
+                    />
+                    <span className="text-3xs text-fg-muted pl-0.5">
+                      Supports <code className="bg-bg-muted/50 px-1 rounded font-mono text-2xs">{"{name}"}</code> and <code className="bg-bg-muted/50 px-1 rounded font-mono text-2xs">{"{value}"}</code>.
+                    </span>
+                    <div className="flex items-center gap-1.5 flex-wrap mt-1.5 pl-0.5">
+                      <span className="text-3xs text-fg-muted font-semibold uppercase tracking-wider">Presets:</span>
+                      <button
+                        type="button"
+                        onClick={() => setLocalFormat("{value}")}
+                        className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
+                        title="Show only the value (e.g., '22°C' instead of 'Temp: 22°C')"
+                      >
+                        Value Only
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLocalFormat("{value} F")}
+                        className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
+                        title="Suffix a custom unit override (e.g., '22°C F')"
+                      >
+                        Custom Suffix
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setLocalFormat("{name} [{value}]")}
+                        className="text-3xs text-blue-500 hover:text-blue-600 bg-bg-panel border border-border hover:border-blue-300 px-2 py-0.5 rounded-md transition-all cursor-pointer"
+                        title="Bracketed format (e.g., 'Temp [22°C]')"
+                      >
+                        Bracketed
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-start gap-1">
@@ -188,12 +200,12 @@ const SensorListItem = memo(
                       handleEdit();
                     }
                   }}
-                  aria-label={`Sensor name: ${customName || originalName}`}
+                  aria-label={isGroup ? `Group text: ${customName}` : `Sensor name: ${customName || originalName}`}
                   className="font-medium text-sm cursor-pointer hover:text-fg-muted transition-colors duration-200"
                 >
                   {displayNameNode}
                 </span>
-                {customFormat && (
+                {!isGroup && customFormat && (
                   <span className="text-3xs text-fg-muted font-mono bg-bg-muted/50 px-1 py-0.5 rounded border border-border/40">
                     Format: {customFormat}
                   </span>
@@ -203,18 +215,26 @@ const SensorListItem = memo(
 
             {/* Tags */}
             <div className="flex gap-2 flex-wrap mt-1">
-              <Tag size="sm" variant="subtle" colorPalette="blue">
-                <TagStartElement>
-                  <Hash size={12} />
-                </TagStartElement>
-                <TagLabel>{entityId}</TagLabel>
-              </Tag>
-              <Tag size="sm" variant="subtle" colorPalette="green">
-                <TagStartElement>
-                  <Activity size={12} />
-                </TagStartElement>
-                <TagLabel>{sensorValue}</TagLabel>
-              </Tag>
+              {isGroup ? (
+                <Tag size="sm" variant="subtle" colorPalette="default">
+                  <TagLabel>Text / Group Header</TagLabel>
+                </Tag>
+              ) : (
+                <>
+                  <Tag size="sm" variant="subtle" colorPalette="blue">
+                    <TagStartElement>
+                      <Hash size={12} />
+                    </TagStartElement>
+                    <TagLabel>{entityId}</TagLabel>
+                  </Tag>
+                  <Tag size="sm" variant="subtle" colorPalette="green">
+                    <TagStartElement>
+                      <Activity size={12} />
+                    </TagStartElement>
+                    <TagLabel>{sensorValue}</TagLabel>
+                  </Tag>
+                </>
+              )}
             </div>
           </div>
 
@@ -265,7 +285,7 @@ const SensorListItem = memo(
                   <Grip size={16} />
                 </IconButton>
                 <IconButton
-                  aria-label="Edit sensor"
+                  aria-label={isGroup ? "Edit group text" : "Edit sensor"}
                   variant="ghost"
                   size="xs"
                   onClick={handleEdit}
@@ -273,7 +293,7 @@ const SensorListItem = memo(
                   <Pencil size={14} />
                 </IconButton>
                 <IconButton
-                  aria-label="Remove sensor"
+                  aria-label={isGroup ? "Remove group element" : "Remove sensor"}
                   variant="ghost"
                   size="xs"
                   onClick={onRemove}

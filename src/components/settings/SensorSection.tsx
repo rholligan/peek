@@ -101,6 +101,17 @@ export const SensorSection = memo(function SensorSection({
     [sensorList, listKey, savePartial]
   );
 
+  const handleAddGroupElement = useCallback(() => {
+    const uniqueId = `group:${Date.now()}`;
+    const updated = addSensor(sensorList, uniqueId);
+    const names = { ...sensorNames };
+    names[uniqueId] = "New Group: ";
+    savePartial({
+      [listKey]: updated,
+      [namesKey]: names,
+    });
+  }, [sensorList, sensorNames, listKey, namesKey, savePartial]);
+
   const handleRemove = useCallback(
     (entityId: string) => {
       const updated = removeSensor(sensorList, entityId);
@@ -208,17 +219,28 @@ export const SensorSection = memo(function SensorSection({
             </SortableContext>
           )}
 
-          <Button
-            variant="outline"
-            onClick={() => {
-              setModalKey((k) => k + 1);
-              setIsModalOpen(true);
-            }}
-            className="w-full border-dashed"
-          >
-            <Plus size={16} />
-            Add sensor
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setModalKey((k) => k + 1);
+                setIsModalOpen(true);
+              }}
+              className="flex-1 border-dashed"
+            >
+              <Plus size={16} />
+              Add sensor
+            </Button>
+            <Button
+              variant="outline"
+              onClick={handleAddGroupElement}
+              className="border-dashed px-4"
+              title="Add a custom text label or divider to group your sensors"
+            >
+              <Plus size={16} />
+              Add Group / Divider
+            </Button>
+          </div>
         </div>
       </CardBody>
 

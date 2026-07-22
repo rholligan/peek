@@ -44,8 +44,6 @@ export interface Settings {
   menuBarCycleIntervalEnabled: boolean;
   /** Seconds between automatic menu bar page cycles (>= 5) */
   menuBarCycleIntervalSeconds: number;
-  /** Custom titles for each menu bar page/group */
-  menuBarPageTitles: string[];
   /** Custom format overrides per sensor entity ID */
   sensorFormats: Record<string, string>;
   /** Whether to automatically start the app when the user logs in */

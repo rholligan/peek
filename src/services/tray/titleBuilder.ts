@@ -3,11 +3,9 @@
  * @module services/tray/titleBuilder
  */
 
-import { getPagedSensors, getPaginationInfo } from "./pageState";
+import { getPagedSensors } from "./pageState";
 import { formatSensor } from "./sensorFormatter";
 import { UI_LIMITS, type HaEntityState, type HaConnectionStatus, type Settings } from "@/shared";
-
-const TRUNCATION_INDICATOR = "...";
 
 /**
  * Build the menu bar title from menuBarSensors.
@@ -43,62 +41,53 @@ export function buildMenuBarTitle(
   }
   if (settings.menuBarSensors.length === 0) return "";
 
-  // Find current page title prefix if pagination is active
-  const pagInfo = getPaginationInfo(settings);
-  const pageIndex = pagInfo ? pagInfo.page : 0;
-  const pageTitle = settings.menuBarPageTitles?.[pageIndex];
-  const prefix = pageTitle && pageTitle.trim() !== "" ? `${pageTitle.trim()}: ` : "";
-
   // Build separator with spaces around it (empty separator = single space)
   const separatorChar = settings.menuBarSeparator ?? "|";
   const separator = separatorChar ? ` ${separatorChar} ` : " ";
 
-  const parts: string[] = [];
-  let totalLength = prefix.length;
-  let truncated = false;
+  let title = "";
+  let skipNextSeparator = false;
 
-  for (const entityId of getPagedSensors(settings)) {
-    const entity = states.get(entityId);
-    const customName = settings.menuBarSensorNames?.[entityId];
-    const sensorFormat = settings.sensorFormats?.[entityId] || settings.menuBarFormat;
-    const formatted = formatSensor(
-      entityId,
-      entity,
-      customName,
-      sensorFormat,
-      { hideUnavailable: true, useShortId: true }
-    );
+  for (const item of getPagedSensors(settings)) {
+    let formatted = "";
+    let isGroup = false;
+
+    if (item.startsWith("group:")) {
+      formatted = settings.menuBarSensorNames?.[item] ?? "";
+      isGroup = true;
+    } else {
+      const entity = states.get(item);
+      const customName = settings.menuBarSensorNames?.[item];
+      const sensorFormat = settings.sensorFormats?.[item] || settings.menuBarFormat;
+      formatted = formatSensor(
+        item,
+        entity,
+        customName,
+        sensorFormat,
+        { hideUnavailable: true, useShortId: true }
+      );
+    }
 
     if (!formatted) continue;
 
-    // Check if adding this would exceed max length
-    const addedSeparator = parts.length > 0 ? separator : "";
-    const newLength = totalLength + addedSeparator.length + formatted.length;
-
-    if (newLength > UI_LIMITS.MAX_MENU_BAR_LENGTH) {
-      if (parts.length === 0) {
-        // First item alone exceeds limit - truncate it
-        const maxFirstLength = UI_LIMITS.MAX_MENU_BAR_LENGTH - TRUNCATION_INDICATOR.length;
-        parts.push(formatted.slice(0, maxFirstLength) + TRUNCATION_INDICATOR);
-        totalLength = prefix.length + parts[0].length;
-      } else {
-        // Check if we can fit truncation indicator
-        const indicatorLength =
-          totalLength + addedSeparator.length + TRUNCATION_INDICATOR.length;
-        if (indicatorLength <= UI_LIMITS.MAX_MENU_BAR_LENGTH) {
-          truncated = true;
-        }
-      }
-      break;
+    if (title.length > 0 && !skipNextSeparator) {
+      title += separator;
     }
 
-    parts.push(formatted);
-    totalLength = newLength;
+    title += formatted;
+
+    // Skip separator if group ends with space (e.g. "Home: ") or is a custom divider (e.g. "│")
+    if (isGroup) {
+      skipNextSeparator = formatted.endsWith(" ") || ["│", "•", "-", "│", "|", "·"].includes(formatted.trim());
+    } else {
+      skipNextSeparator = false;
+    }
   }
 
-  if (truncated) {
-    parts.push(TRUNCATION_INDICATOR);
+  // Handle total length truncation
+  if (title.length > UI_LIMITS.MAX_MENU_BAR_LENGTH) {
+    title = title.slice(0, UI_LIMITS.MAX_MENU_BAR_LENGTH - 3) + "...";
   }
 
-  return prefix + parts.join(separator);
+  return title;
 }

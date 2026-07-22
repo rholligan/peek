@@ -81,6 +81,18 @@ async function buildSensorItems(
   const items: MenuItem[] = [];
   for (let i = 0; i < settings.dropdownSensors.length; i++) {
     const entityId = settings.dropdownSensors[i];
+    
+    if (entityId.startsWith("group:")) {
+      const groupText = settings.dropdownSensorNames?.[entityId] || "Group";
+      const menuItem = await MenuItem.new({
+        id: `sensor-${i}`,
+        text: groupText,
+        enabled: false,
+      });
+      items.push(menuItem);
+      continue;
+    }
+
     const entity = states.get(entityId);
     const customName = settings.dropdownSensorNames?.[entityId];
     const customFormat = settings.sensorFormats?.[entityId] || settings.dropdownFormat;
