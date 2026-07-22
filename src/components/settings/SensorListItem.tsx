@@ -114,6 +114,34 @@ const SensorListItem = memo(
       }
     };
 
+    const getLiveFormattedValue = () => {
+      const rawNum = parseFloat(sensorValue);
+      if (isNaN(rawNum)) return "";
+
+      const scale = parseFloat(localScale);
+      const scaledNum = isNaN(scale) ? rawNum : rawNum * scale;
+
+      const decimals = parseInt(localDecimals, 10);
+      const formattedNum = isNaN(decimals) ? scaledNum.toString() : scaledNum.toFixed(decimals);
+
+      const unit = localUnit.trim() !== "" ? localUnit.trim() : defaultUnit;
+      return `${formattedNum}${unit ? ` ${unit}` : ""}`;
+    };
+
+    const getSavedFormattedValue = () => {
+      const rawNum = parseFloat(sensorValue);
+      if (isNaN(rawNum)) return "";
+
+      const scale = customConfig?.scaleMultiplier;
+      const scaledNum = scale !== undefined ? rawNum * scale : rawNum;
+
+      const decimals = customConfig?.decimalPlaces;
+      const formattedNum = decimals !== undefined ? scaledNum.toFixed(decimals) : scaledNum.toString();
+
+      const unit = customConfig?.customUnit !== undefined ? customConfig.customUnit : defaultUnit;
+      return `${formattedNum}${unit ? ` ${unit}` : ""}`;
+    };
+
     const isGroup = entityId.startsWith("group:");
     const isPageBreak = entityId.startsWith("page_break:");
 
@@ -288,6 +316,14 @@ const SensorListItem = memo(
                         />
                       </div>
                     </div>
+                    <div className="bg-bg-panel/50 border border-border/80 rounded-lg p-2.5 flex items-center justify-between">
+                      <span className="text-3xs text-fg-muted font-semibold uppercase tracking-wider">Live Format Preview:</span>
+                      <span className="text-xs font-mono font-bold text-fg flex items-center gap-1.5">
+                        <span className="text-fg-muted">{sensorValue}</span>
+                        <span className="text-blue-500 font-sans">➔</span>
+                        <span className="text-green-500">{getLiveFormattedValue() || "—"}</span>
+                      </span>
+                    </div>
                     <span className="text-3xs text-fg-muted pl-0.5 block">
                       Excel-style scaling: set multiplier to <code className="bg-bg-muted/50 px-1 rounded">0.001</code> and unit to <code className="bg-bg-muted/50 px-1 rounded">kW</code> to convert W to kW.
                     </span>
@@ -338,14 +374,14 @@ const SensorListItem = memo(
                     </TagStartElement>
                     <TagLabel>{sensorValue}</TagLabel>
                   </Tag>
-                  {isEditing && localUnit.trim() !== "" && defaultUnit !== localUnit.trim() && (
+                  {isEditing && (localScale !== "" || localUnit.trim() !== "" || localDecimals !== "") && (
                     <Tag size="sm" variant="subtle" colorPalette="yellow">
-                      <TagLabel>{defaultUnit || "none"} ➔ {localUnit.trim()}</TagLabel>
+                      <TagLabel>{sensorValue} ➔ {getLiveFormattedValue() || "—"}</TagLabel>
                     </Tag>
                   )}
-                  {!isEditing && customConfig?.customUnit && defaultUnit !== customConfig.customUnit && (
+                  {!isEditing && (customConfig?.scaleMultiplier !== undefined || customConfig?.customUnit !== undefined || customConfig?.decimalPlaces !== undefined) && (
                     <Tag size="sm" variant="subtle" colorPalette="yellow">
-                      <TagLabel>{defaultUnit || "none"} ➔ {customConfig.customUnit}</TagLabel>
+                      <TagLabel>{sensorValue} ➔ {getSavedFormattedValue() || "—"}</TagLabel>
                     </Tag>
                   )}
                 </>
