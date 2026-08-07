@@ -67,25 +67,25 @@ export function LivePreviewMockup({ previewHeight, setShowPreview }: LivePreview
                 </div>
                 
                 {/* Live macOS Menu Bar Mockup */}
-                <div className="relative w-full h-11 bg-[#1e1e1f] border border-neutral-800/80 rounded-xl overflow-hidden flex items-center justify-between px-4 select-none shadow-sm">
+                <div className="relative w-full h-[22px] bg-[#1a1a1b] border border-neutral-800/60 rounded-md overflow-hidden flex items-center justify-between px-3 select-none shadow-sm font-sans text-xs">
                   {/* Left Side: Apple Logo & App Menus */}
-                  <div className="flex items-center gap-3 text-neutral-400 font-sans text-xs">
-                    <span className="text-neutral-200 text-sm font-sans"></span>
-                    <span className="font-bold text-neutral-200 cursor-default">Peek</span>
-                    <span className="hover:text-neutral-200 transition-colors hidden sm:inline cursor-default">File</span>
-                    <span className="hover:text-neutral-200 transition-colors hidden sm:inline cursor-default">Edit</span>
+                  <div className="flex items-center gap-2.5 text-neutral-400 h-full text-[11px]">
+                    <span className="text-neutral-200 text-sm font-sans leading-none"></span>
+                    <span className="font-bold text-neutral-200 cursor-default leading-none">Peek</span>
+                    <span className="hover:text-neutral-200 transition-colors hidden sm:inline cursor-default leading-none">File</span>
+                    <span className="hover:text-neutral-200 transition-colors hidden sm:inline cursor-default leading-none">Edit</span>
                   </div>
                   
                   {/* Right Side: Peek Sensor Item & System Control Icons */}
-                  <div className="flex items-center gap-3.5">
+                  <div className="flex items-center gap-2.5 h-full">
                     {/* Our Live Active Sensor Title */}
                     <div 
                       style={widthStyle}
-                      className="bg-white/5 border border-white/5 hover:bg-white/10 active:bg-white/20 px-2.5 h-6 rounded-md text-xs font-semibold text-neutral-100 font-mono tracking-wide shadow-sm cursor-default transition-all duration-150 flex items-center whitespace-nowrap overflow-visible"
+                      className="hover:bg-white/10 active:bg-white/15 px-2 h-full text-[11px] font-semibold text-neutral-100 font-mono tracking-wide cursor-default transition-all duration-150 flex items-center whitespace-nowrap overflow-visible bg-transparent border-none"
                     >
                       <span className={cn(
-                        "transition-transform duration-150 block w-full",
-                        isMiddle ? "translate-y-[0.75px]" : "translate-y-[-1px]",
+                        "transition-transform duration-150 block w-full leading-none",
+                        isMiddle ? "translate-y-[0.25px]" : "translate-y-[-0.75px]",
                         isWidthStabilized ? "text-left" : "text-center"
                       )}>
                         {renderedTitle}
@@ -93,10 +93,10 @@ export function LivePreviewMockup({ previewHeight, setShowPreview }: LivePreview
                     </div>
                     
                     {/* System Control Center / Date-Time Mockups */}
-                    <div className="flex items-center gap-2.5 text-neutral-400">
-                      <Wifi className="h-3.5 w-3.5 text-neutral-400 stroke-[2.2]" />
-                      <Battery className="h-3.5 w-3.5 text-neutral-400 stroke-[2.2]" />
-                      <span className="text-[11px] font-semibold font-sans text-neutral-300 pl-0.5 tracking-wide cursor-default translate-y-[0.5px]">
+                    <div className="flex items-center gap-2 h-full text-neutral-400 text-[10px]">
+                      <Wifi className="h-3 w-3 text-neutral-400 stroke-[2.2]" />
+                      <Battery className="h-3 w-3 text-neutral-400 stroke-[2.2]" />
+                      <span className="text-[10px] font-semibold font-sans text-neutral-300 cursor-default leading-none">
                         {new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
                       </span>
                     </div>
