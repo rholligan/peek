@@ -23,7 +23,7 @@ export function LivePreviewMockup() {
   const isWidthStabilized = settings.menuBarPageWidthStabilizationEnabled && settings.menuBarPaginationEnabled;
 
   return (
-    <Card className="border-border/80 shadow-sm mt-4 select-none">
+    <Card className="border-border/80 shadow-sm select-none">
       <CardHeader>
         <CardTitle className="text-sm font-semibold text-fg">Live macOS Menu Bar Mockup</CardTitle>
         <CardDescription className="text-xs text-fg-muted">
@@ -31,7 +31,7 @@ export function LivePreviewMockup() {
         </CardDescription>
       </CardHeader>
       <CardBody>
-        <div className="space-y-4 pl-1 max-h-[32rem] overflow-y-auto">
+        <div className="space-y-4 pl-1 max-h-[11rem] overflow-y-auto pr-1">
           {getMenuBarPages(settings).map((pageItems, pageIdx) => {
             const renderedTitle = pageTitles[pageIdx] || "—";
             const widthStyle = (isWidthStabilized && maxCharLength > 0)
@@ -60,7 +60,7 @@ export function LivePreviewMockup() {
                     {/* Our Live Active Sensor Title */}
                     <div 
                       style={widthStyle}
-                      className="bg-white/5 border border-white/5 hover:bg-white/10 active:bg-white/20 px-2.5 h-6 rounded-md text-xs font-semibold text-neutral-100 font-mono tracking-wide shadow-sm cursor-default transition-all duration-150 flex items-center whitespace-nowrap overflow-hidden"
+                      className="bg-white/5 border border-white/5 hover:bg-white/10 active:bg-white/20 px-2.5 h-6 rounded-md text-xs font-semibold text-neutral-100 font-mono tracking-wide shadow-sm cursor-default transition-all duration-150 flex items-center whitespace-nowrap overflow-visible"
                     >
                       <span className={cn(
                         "transition-transform duration-150 block w-full",

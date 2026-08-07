@@ -64,12 +64,18 @@ export function SettingsTabs({ activeTabIndex, onTabChange }: SettingsTabsProps)
       <TabPanels
         as="main"
         aria-label="Settings"
-        className="flex-1 overflow-y-auto px-4 py-4"
+        className="flex-1 flex flex-col min-h-0 px-4 py-4 overflow-hidden"
       >
         {TABS.map((tab) => (
-          <TabPanel key={tab.id} className="space-y-6 outline-none">
-            <tab.Component />
-            {(tab.id === "sensors" || tab.id === "appearance") && <LivePreviewMockup />}
+          <TabPanel key={tab.id} className="flex-1 flex flex-col min-h-0 outline-none overflow-hidden">
+            <div className="flex-1 overflow-y-auto space-y-6 pr-1 pb-1">
+              <tab.Component />
+            </div>
+            {(tab.id === "sensors" || tab.id === "appearance") && (
+              <div className="shrink-0 border-t border-border/40 pt-4 mt-2">
+                <LivePreviewMockup />
+              </div>
+            )}
           </TabPanel>
         ))}
       </TabPanels>
