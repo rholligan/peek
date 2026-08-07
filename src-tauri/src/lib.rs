@@ -24,118 +24,127 @@ fn set_fade_title(
         unsafe {
             let status_bar = NSStatusBar::systemStatusBar();
             let key = NSString::from_str("_statusItems");
+
+            // Validate that NSStatusBar responds to valueForKey:
+            let responds_to_kvc: bool = msg_send![&status_bar, respondsToSelector: objc2::sel!(valueForKey:)];
+            if !responds_to_kvc {
+                return Err("NSStatusBar does not respond to valueForKey:".to_string());
+            }
+
             let status_items: Option<Retained<objc2_foundation::NSObject>> = msg_send![&status_bar, valueForKey: &*key];
+            let status_items = status_items.ok_or_else(|| "Failed to retrieve _statusItems from NSStatusBar".to_string())?;
             
-            if let Some(status_items) = status_items {
-                let count: usize = msg_send![&status_items, count];
-                if count > 0 {
-                    let status_item_ptr: *mut std::os::raw::c_void = msg_send![&status_items, pointerAtIndex: 0];
-                    if !status_item_ptr.is_null() {
-                        let status_item = &*(status_item_ptr as *const objc2_foundation::NSObject);
-                        let button: Option<Retained<objc2_app_kit::NSButton>> = msg_send![status_item, button];
-                        if let Some(button) = button {
-                            let () = msg_send![&button, setWantsLayer: true];
+            let count: usize = msg_send![&status_items, count];
+            if count == 0 {
+                return Err("No status items registered in NSStatusBar".to_string());
+            }
 
-                            // 1. Calculate and set the fixed width if width stabilization is enabled
-                            let mut attributes_dict: Option<Retained<objc2_foundation::NSDictionary<NSString, objc2_foundation::NSObject>>> = None;
-                            let font: Option<Retained<objc2_foundation::NSObject>> = msg_send![&button, font];
-                            if let Some(font) = font {
-                                let font_key = NSString::from_str("NSFont");
-                                let offset_key = NSString::from_str("NSBaselineOffset");
-                                
-                                let number_class = objc2::runtime::AnyClass::get(std::ffi::CStr::from_bytes_with_nul(b"NSNumber\0").unwrap())
-                                    .ok_or_else(|| "NSNumber class not found".to_string())?;
-                                let offset_val = baseline_offset.unwrap_or(0.5f64);
-                                let offset: Retained<objc2_foundation::NSObject> = msg_send![number_class, numberWithDouble: offset_val];
+            let status_item_ptr: *mut std::os::raw::c_void = msg_send![&status_items, pointerAtIndex: 0];
+            if status_item_ptr.is_null() {
+                return Err("Status item pointer at index 0 is null".to_string());
+            }
 
-                                attributes_dict = Some(objc2_foundation::NSDictionary::from_slices(
-                                    &[&*font_key, &*offset_key],
-                                    &[&*font, &*offset],
-                                ));
-                            }
+            let status_item = &*(status_item_ptr as *const objc2_foundation::NSObject);
+            let button: Option<Retained<objc2_app_kit::NSButton>> = msg_send![status_item, button];
+            let button = button.ok_or_else(|| "Failed to retrieve button from status item".to_string())?;
 
-                            if let Some(titles) = &all_titles {
-                                if !titles.is_empty() {
-                                    let mut max_width: f64 = 0.0;
-                                    for t in titles {
-                                        let ns_t = NSString::from_str(t);
-                                        let size: objc2_foundation::NSSize = if let Some(dict) = &attributes_dict {
-                                            msg_send![&ns_t, sizeWithAttributes: &**dict]
-                                        } else {
-                                            msg_send![&ns_t, sizeWithAttributes: None::<&objc2_foundation::NSDictionary<NSString, objc2_foundation::NSObject>>]
-                                        };
-                                        if size.width > max_width {
-                                            max_width = size.width;
-                                        }
-                                    }
-                                    if max_width > 0.0 {
-                                        // Set a fixed width with a comfortable padding margin (e.g. 10.0 pixels total)
-                                        let () = msg_send![status_item, setLength: max_width + 10.0];
-                                    }
-                                } else {
-                                    let () = msg_send![status_item, setLength: -1.0f64];
-                                }
-                            } else {
-                                let () = msg_send![status_item, setLength: -1.0f64];
-                            }
+            // Validate that the button responds to layer backing methods
+            let responds_to_wants_layer: bool = msg_send![&button, respondsToSelector: objc2::sel!(setWantsLayer:)];
+            if !responds_to_wants_layer {
+                return Err("NSButton does not respond to setWantsLayer:".to_string());
+            }
 
-                            // 2. Set up the Core Animation transition if a duration is specified, otherwise disable layer backing to restore default vertical centering
-                            let mut has_transition = false;
-                            if let Some(duration) = duration_ms {
-                                if duration > 0 {
-                                    has_transition = true;
-                                    let () = msg_send![&button, setWantsLayer: true];
+            let () = msg_send![&button, setWantsLayer: true];
 
-                                    let transition_class = objc2::runtime::AnyClass::get(std::ffi::CStr::from_bytes_with_nul(b"CATransition\0").unwrap())
-                                        .ok_or_else(|| "CATransition class not found".to_string())?;
-                                    let transition: Retained<objc2_foundation::NSObject> = msg_send![transition_class, animation];
+            // 1. Calculate and set the fixed width if width stabilization is enabled
+            let mut attributes_dict: Option<Retained<objc2_foundation::NSDictionary<NSString, objc2_foundation::NSObject>>> = None;
+            let font: Option<Retained<objc2_foundation::NSObject>> = msg_send![&button, font];
+            if let Some(font) = font {
+                let font_key = NSString::from_str("NSFont");
+                let offset_key = NSString::from_str("NSBaselineOffset");
+                
+                let number_class = objc2::runtime::AnyClass::get(std::ffi::CStr::from_bytes_with_nul(b"NSNumber\0").unwrap())
+                    .ok_or_else(|| "NSNumber class not found".to_string())?;
+                let offset_val = baseline_offset.unwrap_or(0.5f64);
+                let offset: Retained<objc2_foundation::NSObject> = msg_send![number_class, numberWithDouble: offset_val];
 
-                                    let duration_secs = duration as f64 / 1000.0;
-                                    let () = msg_send![&transition, setDuration: duration_secs];
-                                    
-                                    let fade_str = NSString::from_str("fade");
-                                    let () = msg_send![&transition, setType: &*fade_str];
+                attributes_dict = Some(objc2_foundation::NSDictionary::from_slices(
+                    &[&*font_key, &*offset_key],
+                    &[&*font, &*offset],
+                ));
+            }
 
-                                    let ease_in_ease_out_str = NSString::from_str("easeInEaseOut");
-                                    let media_timing_class = objc2::runtime::AnyClass::get(std::ffi::CStr::from_bytes_with_nul(b"CAMediaTimingFunction\0").unwrap())
-                                        .ok_or_else(|| "CAMediaTimingFunction class not found".to_string())?;
-                                    let timing_function: Retained<objc2_foundation::NSObject> = msg_send![
-                                        media_timing_class,
-                                        functionWithName: &*ease_in_ease_out_str
-                                    ];
-                                    let () = msg_send![&transition, setTimingFunction: &*timing_function];
-
-                                    let layer: Option<Retained<objc2_foundation::NSObject>> = msg_send![&button, layer];
-                                    if let Some(layer) = layer {
-                                        let anim_key = NSString::from_str("fadeText");
-                                        let () = msg_send![&layer, addAnimation: &*transition, forKey: &*anim_key];
-                                    }
-                                }
-                            }
-
-                            if !has_transition {
-                                let () = msg_send![&button, setWantsLayer: false];
-                            }
-
-                            // 3. Set the new title with baseline offset alignment correction
-                            let ns_title = NSString::from_str(&title);
-                            if let Some(dict) = &attributes_dict {
-                                let attr_string_class = objc2::runtime::AnyClass::get(std::ffi::CStr::from_bytes_with_nul(b"NSAttributedString\0").unwrap())
-                                    .ok_or_else(|| "NSAttributedString class not found".to_string())?;
-                                let alloc_str: *mut objc2_foundation::NSObject = msg_send![attr_string_class, alloc];
-                                let attributed_title_ptr: *mut objc2_foundation::NSObject = msg_send![
-                                    alloc_str,
-                                    initWithString: &*ns_title,
-                                    attributes: &**dict
-                                ];
-                                let attributed_title = Retained::from_raw(attributed_title_ptr).unwrap();
-                                let () = msg_send![&button, setAttributedTitle: &*attributed_title];
-                            } else {
-                                let () = msg_send![&button, setTitle: &*ns_title];
-                            }
+            if let Some(titles) = &all_titles {
+                if !titles.is_empty() {
+                    let mut max_width: f64 = 0.0;
+                    for t in titles {
+                        let ns_t = NSString::from_str(t);
+                        let size: objc2_foundation::NSSize = if let Some(dict) = &attributes_dict {
+                            msg_send![&ns_t, sizeWithAttributes: &**dict]
+                        } else {
+                            msg_send![&ns_t, sizeWithAttributes: None::<&objc2_foundation::NSDictionary<NSString, objc2_foundation::NSObject>>]
+                        };
+                        if size.width > max_width {
+                            max_width = size.width;
                         }
                     }
+                    if max_width > 0.0 {
+                        // Set a fixed width with a comfortable padding margin (e.g. 10.0 pixels total)
+                        let () = msg_send![status_item, setLength: max_width + 10.0];
+                    }
+                } else {
+                    let () = msg_send![status_item, setLength: -1.0f64]; // NSVariableLength
                 }
+            } else {
+                let () = msg_send![status_item, setLength: -1.0f64]; // NSVariableLength
+            }
+
+            // 2. Set up the Core Animation transition if a duration is specified
+            if let Some(duration) = duration_ms {
+                if duration > 0 {
+                    let transition_class = objc2::runtime::AnyClass::get(std::ffi::CStr::from_bytes_with_nul(b"CATransition\0").unwrap())
+                        .ok_or_else(|| "CATransition class not found".to_string())?;
+                    let transition: Retained<objc2_foundation::NSObject> = msg_send![transition_class, animation];
+
+                    let duration_secs = duration as f64 / 1000.0;
+                    let () = msg_send![&transition, setDuration: duration_secs];
+                    
+                    let fade_str = NSString::from_str("fade");
+                    let () = msg_send![&transition, setType: &*fade_str];
+
+                    let ease_in_ease_out_str = NSString::from_str("easeInEaseOut");
+                    let media_timing_class = objc2::runtime::AnyClass::get(std::ffi::CStr::from_bytes_with_nul(b"CAMediaTimingFunction\0").unwrap())
+                        .ok_or_else(|| "CAMediaTimingFunction class not found".to_string())?;
+                    let timing_function: Retained<objc2_foundation::NSObject> = msg_send![
+                        media_timing_class,
+                        functionWithName: &*ease_in_ease_out_str
+                    ];
+                    let () = msg_send![&transition, setTimingFunction: &*timing_function];
+
+                    let layer: Option<Retained<objc2_foundation::NSObject>> = msg_send![&button, layer];
+                    if let Some(layer) = layer {
+                        let anim_key = NSString::from_str("fadeText");
+                        let () = msg_send![&layer, addAnimation: &*transition, forKey: &*anim_key];
+                    }
+                }
+            }
+
+            // 3. Set the new title with baseline offset alignment correction
+            let ns_title = NSString::from_str(&title);
+            if let Some(dict) = &attributes_dict {
+                let attr_string_class = objc2::runtime::AnyClass::get(std::ffi::CStr::from_bytes_with_nul(b"NSAttributedString\0").unwrap())
+                    .ok_or_else(|| "NSAttributedString class not found".to_string())?;
+                let alloc_str: *mut objc2_foundation::NSObject = msg_send![attr_string_class, alloc];
+                let attributed_title_ptr: *mut objc2_foundation::NSObject = msg_send![
+                    alloc_str,
+                    initWithString: &*ns_title,
+                    attributes: &**dict
+                ];
+                let attributed_title = Retained::from_raw(attributed_title_ptr)
+                    .ok_or_else(|| "Failed to construct NSAttributedString".to_string())?;
+                let () = msg_send![&button, setAttributedTitle: &*attributed_title];
+            } else {
+                let () = msg_send![&button, setTitle: &*ns_title];
             }
         }
         Ok(())

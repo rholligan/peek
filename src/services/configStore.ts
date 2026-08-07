@@ -6,7 +6,9 @@
 
 import { readTextFile, writeTextFile, mkdir, BaseDirectory } from '@tauri-apps/plugin-fs';
 import { z } from 'zod';
-import { DEFAULT_SETTINGS, type Settings } from '@/shared';
+import { DEFAULT_SETTINGS, type Settings, createLogger } from '@/shared';
+
+const logger = createLogger('[ConfigStore]');
 
 const CONFIG_DIR = '.peek';
 const CONFIG_FILE = `${CONFIG_DIR}/config.json`;
@@ -29,6 +31,9 @@ const configSchema = z.object({
   menuBarFormat: z.string().optional(),
   dropdownFormat: z.string().optional(),
   menuBarSeparator: z.string().optional(),
+  menuBarPaginationEnabled: z.boolean().optional(),
+  menuBarSensorsPerPage: z.number().int().min(1).max(10).optional(),
+  menuBarCycleShortcut: z.string().optional(),
   menuBarAutoReturnEnabled: z.boolean().optional(),
   menuBarAutoReturnMinutes: z.number().int().min(1).max(120).optional(),
   menuBarPaginationExcludeGroups: z.boolean().optional(),
@@ -59,14 +64,37 @@ async function readConfig(bypassCache = false): Promise<Settings> {
     const raw = await readTextFile(CONFIG_FILE, { baseDir: BASE_DIR });
     const parsed: unknown = JSON.parse(raw);
 
-    // Validate with Zod schema - returns defaults on invalid config
+    // Validate with Zod schema
     const result = configSchema.safeParse(parsed);
-    if (!result.success) {
-      cachedConfig = { ...DEFAULT_SETTINGS };
+    if (result.success) {
+      cachedConfig = { ...DEFAULT_SETTINGS, ...result.data };
       return { ...cachedConfig };
     }
 
-    cachedConfig = { ...DEFAULT_SETTINGS, ...result.data };
+    // Schema validation failed (e.g. hand-edited file with invalid field values).
+    // To prevent wiping out the entire user config (including haUrl/haToken),
+    // we recover all valid fields and fall back to defaults ONLY for invalid ones.
+    logger.info("Config file contains some invalid or out-of-range fields. Recovering valid fields...");
+
+    const merged = { ...DEFAULT_SETTINGS };
+    if (parsed && typeof parsed === "object") {
+      const dataObj = parsed as Record<string, unknown>;
+      // For each expected field in configSchema, validate individually
+      for (const [key, fieldSchema] of Object.entries(configSchema.shape)) {
+        if (key in dataObj) {
+          const fieldResult = fieldSchema.safeParse(dataObj[key]);
+          if (fieldResult.success) {
+            if (fieldResult.data !== undefined) {
+              (merged as Record<string, unknown>)[key] = fieldResult.data;
+            }
+          } else {
+            logger.info(`Config field "${key}" is invalid (value: ${dataObj[key]}). Falling back to default.`);
+          }
+        }
+      }
+    }
+
+    cachedConfig = merged;
     return { ...cachedConfig };
   } catch {
     // File or directory doesn't exist yet, or JSON parse failed — return defaults

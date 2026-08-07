@@ -213,15 +213,8 @@ export async function setTrayConnectedState(
 }
 
 let activeTransitionTimer: ReturnType<typeof setInterval> | null = null;
+let activeTransitionResolve: (() => void) | null = null;
 
-/**
- * Animate transition between two titles in the menu bar using a native Core Animation fade.
- * Returns a Promise that resolves when the animation is completed.
- *
- * @param target - The ending title string
- * @param allTitles - All page titles for native width stabilization calculation
- * @param duration - Custom duration in milliseconds (e.g., 300)
- */
 /**
  * Animate transition between two titles in the menu bar using a native Core Animation fade.
  * Returns a Promise that resolves when the animation is completed.
@@ -243,6 +236,10 @@ function animateTitleTransition(
     clearTimeout(activeTransitionTimer);
     activeTransitionTimer = null;
   }
+  if (activeTransitionResolve) {
+    activeTransitionResolve();
+    activeTransitionResolve = null;
+  }
 
   return invoke("set_fade_title", {
     title: target,
@@ -252,18 +249,12 @@ function animateTitleTransition(
   })
     .then(() => {
       return new Promise<void>((resolve) => {
+        activeTransitionResolve = resolve;
         activeTransitionTimer = setTimeout(() => {
           activeTransitionTimer = null;
+          activeTransitionResolve = null;
           state.isTransitioning = false;
-          // Disable layer backing immediately after transition is complete to restore standard vertical centering
-          invoke("set_fade_title", {
-            title: target,
-            allTitles,
-            baselineOffset,
-            durationMs: 0,
-          })
-            .then(() => resolve())
-            .catch(() => resolve());
+          resolve();
         }, duration);
       });
     })
@@ -286,9 +277,6 @@ function updateMenuBarTitle(
   settings: Settings
 ): void {
   if (!state.tray) return;
-
-  // If a page transition animation is actively running, lock/abort incoming background updates
-  if (state.isTransitioning) return;
 
   const titleToSet = buildMenuBarTitle(states, settings, state.status);
 
