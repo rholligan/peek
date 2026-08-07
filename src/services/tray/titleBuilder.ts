@@ -9,6 +9,10 @@ import { UI_LIMITS, type HaEntityState, type HaConnectionStatus, type Settings }
 
 /**
  * Helper to build the raw title text for a specific slice of sensors/groups.
+ *
+ * @param sensorsList - List of sensor entity IDs
+ * @param states - Map of Home Assistant entity states
+ * @param settings - Current application settings
  */
 function buildTitleForSensors(
   sensorsList: string[],
@@ -101,27 +105,22 @@ export function buildMenuBarTitle(
   }
   if (settings.menuBarSensors.length === 0) return "";
 
-  // 1. Build the base title for the current paged slice
+  // Build the base title for the current paged slice
   const pagedSensors = getPagedSensors(settings);
-  let title = buildTitleForSensors(pagedSensors, states, settings);
+  return buildTitleForSensors(pagedSensors, states, settings);
+}
 
-  // 2. Stabilize the width if enabled, padding shorter pages with trailing spaces to match the maximum width
-  if (settings.menuBarPageWidthStabilizationEnabled && settings.menuBarPaginationEnabled) {
-    const pages = getPages(settings);
-    if (pages.length > 1) {
-      let maxLength = 0;
-      for (const pageSensors of pages) {
-        const pageTitle = buildTitleForSensors(pageSensors, states, settings);
-        maxLength = Math.max(maxLength, pageTitle.length);
-      }
-
-      // Pad our current page title with non-breaking spaces (\u00A0) to match maxLength (prevent macOS from trimming trailing whitespace)
-      const paddingNeeded = maxLength - title.length;
-      if (paddingNeeded > 0) {
-        title += "\u00A0".repeat(paddingNeeded);
-      }
-    }
-  }
-
-  return title;
+/**
+ * Build raw titles for all pages to allow physical width calculations.
+ *
+ * @param states - Map of Home Assistant entity states
+ * @param settings - Current application settings
+ */
+export function buildAllMenuBarTitles(
+  states: Map<string, HaEntityState>,
+  settings: Settings
+): string[] {
+  if (settings.menuBarSensors.length === 0) return [];
+  const pages = getPages(settings);
+  return pages.map((pageSensors) => buildTitleForSensors(pageSensors, states, settings));
 }

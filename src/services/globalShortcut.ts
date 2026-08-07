@@ -102,6 +102,8 @@ export function unregisterMenuBarCycleShortcut(): Promise<void> {
  * error toast instead of writing a broken value to disk and only discovering
  * the failure on the next reconcile. Empty string is treated as valid
  * (means "no shortcut").
+ *
+ * @param accelerator - The keyboard shortcut string to validate
  */
 export function probeMenuBarCycleShortcut(accelerator: string): Promise<boolean> {
   const trimmed = accelerator.trim();

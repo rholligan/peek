@@ -76,7 +76,7 @@ function configureMenuBarCycleInterval(settings: Settings): void {
     settings.menuBarCycleIntervalEnabled &&
     isPaged &&
     hasMultiplePages &&
-    settings.menuBarCycleIntervalSeconds >= 5
+    settings.menuBarCycleIntervalSeconds >= 1
   ) {
     cycleIntervalId = setInterval(() => {
       cycleMenuBarPage(false);

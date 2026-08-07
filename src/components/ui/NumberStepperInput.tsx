@@ -1,4 +1,5 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/Input";
 
 interface NumberStepperInputProps {
@@ -18,6 +19,7 @@ function clamp(n: number, min: number, max: number): number {
 /**
  * Number input with custom up/down stepper buttons. Hides the native browser
  * spinners (which are inconsistent across platforms) and clamps to [min, max].
+ * Maintains local text state to allow natural typing without eager clamping.
  */
 export function NumberStepperInput({
   value,
@@ -27,28 +29,46 @@ export function NumberStepperInput({
   disabled,
   ariaLabel,
 }: NumberStepperInputProps) {
-  const set = (n: number) => onChange(clamp(n, min, max));
+  const [inputValue, setInputValue] = useState(value.toString());
+
+  // Keep local input value in sync with external value prop
+  useEffect(() => {
+    setInputValue(value.toString());
+  }, [value]);
+
+  const handleBlur = () => {
+    const parsed = Number(inputValue);
+    const clamped = clamp(
+      Number.isNaN(parsed) || inputValue.trim() === "" ? min : parsed,
+      min,
+      max
+    );
+    setInputValue(clamped.toString());
+    onChange(clamped);
+  };
+
+  const handleStep = (dir: 1 | -1) => {
+    const clamped = clamp(value + dir, min, max);
+    setInputValue(clamped.toString());
+    onChange(clamped);
+  };
 
   return (
-    <div className="relative inline-flex w-20">
+    <div className="relative inline-flex w-25">
       <Input
-        type="number"
-        min={min}
-        max={max}
-        value={value}
+        type="text"
+        value={inputValue}
         onChange={(e) => {
-          const parsed = Number(e.target.value);
-          if (!Number.isFinite(parsed)) return;
-          set(parsed);
+          // Allow digits and empty string
+          const val = e.target.value;
+          if (val === "" || /^\d+$/.test(val)) {
+            setInputValue(val);
+          }
         }}
+        onBlur={handleBlur}
         disabled={disabled}
         aria-label={ariaLabel}
-        className={
-          "w-full pr-9 " +
-          "[&::-webkit-inner-spin-button]:appearance-none " +
-          "[&::-webkit-outer-spin-button]:appearance-none " +
-          "[appearance:textfield]"
-        }
+        className="w-full pr-9"
       />
       <div className="pointer-events-none absolute inset-y-0 right-3 flex flex-col justify-center">
         <button
@@ -56,7 +76,7 @@ export function NumberStepperInput({
           tabIndex={-1}
           aria-label="Increase"
           disabled={disabled || value >= max}
-          onClick={() => set(value + 1)}
+          onClick={() => handleStep(1)}
           className="pointer-events-auto flex h-3 items-center text-fg-muted hover:text-fg disabled:opacity-40 disabled:hover:text-fg-muted"
         >
           <ChevronUp className="h-3 w-3" />
@@ -66,7 +86,7 @@ export function NumberStepperInput({
           tabIndex={-1}
           aria-label="Decrease"
           disabled={disabled || value <= min}
-          onClick={() => set(value - 1)}
+          onClick={() => handleStep(-1)}
           className="pointer-events-auto flex h-3 items-center text-fg-muted hover:text-fg disabled:opacity-40 disabled:hover:text-fg-muted"
         >
           <ChevronDown className="h-3 w-3" />

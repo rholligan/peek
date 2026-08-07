@@ -33,10 +33,11 @@ const configSchema = z.object({
   menuBarAutoReturnMinutes: z.number().int().min(1).max(120).optional(),
   menuBarPaginationExcludeGroups: z.boolean().optional(),
   menuBarCycleIntervalEnabled: z.boolean().optional(),
-  menuBarCycleIntervalSeconds: z.number().int().min(5).max(60).optional(),
+  menuBarCycleIntervalSeconds: z.number().int().min(1).max(60).optional(),
   menuBarPageTransitionsEnabled: z.boolean().optional(),
   menuBarPageTransitionDuration: z.number().int().min(50).max(2000).optional(),
   menuBarPageWidthStabilizationEnabled: z.boolean().optional(),
+  menuBarVerticalAlignment: z.enum(["clock", "middle"]).optional(),
   sensorFormats: z.record(z.string(), z.string()).optional(),
   sensorConfigs: z.record(z.string(), z.object({
     scaleMultiplier: z.number().optional(),

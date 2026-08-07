@@ -5,6 +5,7 @@
 
 export { initTray, setTrayConnectedState, renderTray, rebuildTrayMenu } from "./trayService";
 export { applyFormat, formatSensor } from "./sensorFormatter";
+export { buildMenuBarTitle, buildAllMenuBarTitles } from "./titleBuilder";
 export type { FormatSensorOptions } from "./sensorFormatter";
 export {
   advancePage as advanceMenuBarPage,

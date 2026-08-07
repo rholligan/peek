@@ -54,7 +54,7 @@ export interface Settings {
   menuBarAutoReturnMinutes: number;
   /** Whether to automatically cycle menu bar pages at a regular interval */
   menuBarCycleIntervalEnabled: boolean;
-  /** Seconds between automatic menu bar page cycles (>= 5) */
+  /** Seconds between automatic menu bar page cycles (>= 1) */
   menuBarCycleIntervalSeconds: number;
   /** Whether to briefly blank the text during page transitions to reduce visual distraction */
   menuBarPageTransitionsEnabled: boolean;
@@ -62,6 +62,8 @@ export interface Settings {
   menuBarPageTransitionDuration: number;
   /** Whether to stabilize the menu bar width with space padding to prevent surrounding icons from shifting */
   menuBarPageWidthStabilizationEnabled: boolean;
+  /** Menu bar text vertical alignment setting: 'clock' (aligned with clock baseline) or 'middle' (geometrically centered) */
+  menuBarVerticalAlignment: "clock" | "middle";
   /** Custom format overrides per sensor entity ID */
   sensorFormats: Record<string, string>;
   /** Custom numeric configurations per sensor entity ID */

@@ -55,6 +55,7 @@ export const DEFAULT_SETTINGS: Settings = {
   menuBarPageTransitionsEnabled: true,
   menuBarPageTransitionDuration: 300,
   menuBarPageWidthStabilizationEnabled: true,
+  menuBarVerticalAlignment: "clock",
   sensorFormats: {},
   sensorConfigs: {},
   autoStartOnLogin: false,

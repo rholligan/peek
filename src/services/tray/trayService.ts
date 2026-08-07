@@ -9,11 +9,12 @@
  * @module services/tray/trayService
  */
 
+import { invoke } from "@tauri-apps/api/core";
 import { MenuItem } from "@tauri-apps/api/menu";
 import { TrayIcon } from "@tauri-apps/api/tray";
 import { buildMenu } from "./menuBuilder";
 import { formatSensor } from "./sensorFormatter";
-import { buildMenuBarTitle } from "./titleBuilder";
+import { buildMenuBarTitle, buildAllMenuBarTitles } from "./titleBuilder";
 import { createInitialState } from "./trayState";
 import { hasCredentials } from "@/services/haConnection";
 import { getUpdateVersion, isUpdateAvailable } from "@/services/updater";
@@ -214,49 +215,63 @@ export async function setTrayConnectedState(
 let activeTransitionTimer: ReturnType<typeof setInterval> | null = null;
 
 /**
- * Animate transition between two titles in the menu bar using a clean fade (blank & reveal).
+ * Animate transition between two titles in the menu bar using a native Core Animation fade.
  * Returns a Promise that resolves when the animation is completed.
  *
- * @param source - The starting title string
  * @param target - The ending title string
- * @param tray - The Tauri TrayIcon instance
+ * @param allTitles - All page titles for native width stabilization calculation
+ * @param duration - Custom duration in milliseconds (e.g., 300)
+ */
+/**
+ * Animate transition between two titles in the menu bar using a native Core Animation fade.
+ * Returns a Promise that resolves when the animation is completed.
+ *
+ * @param target - The ending title string
+ * @param allTitles - All page titles for native width stabilization calculation
+ * @param baselineOffset - Custom baseline offset to adjust text vertical centering
  * @param duration - Custom duration in milliseconds (e.g., 300)
  */
 function animateTitleTransition(
-  source: string,
   target: string,
-  tray: TrayIcon,
+  allTitles: string[] | null,
+  baselineOffset: number,
   duration: number
 ): Promise<void> {
   state.isTransitioning = true;
 
-  return new Promise<void>((resolve) => {
-    if (activeTransitionTimer) {
-      clearTimeout(activeTransitionTimer);
-      activeTransitionTimer = null;
-    }
+  if (activeTransitionTimer) {
+    clearTimeout(activeTransitionTimer);
+    activeTransitionTimer = null;
+  }
 
-    // Determine the maximum length to maintain stable layout width
-    const maxLength = Math.max(source.length, target.length);
-    const blankText = "\u00A0".repeat(maxLength); // Fill with non-breaking spaces
-
-    // Step 1: "Fade out" to blank
-    tray.setTitle(blankText).catch(() => {});
-
-    // Step 2: "Fade in" to the new target text after the duration
-    activeTransitionTimer = setTimeout(() => {
-      activeTransitionTimer = null;
-      tray.setTitle(target)
-        .then(() => {
+  return invoke("set_fade_title", {
+    title: target,
+    allTitles,
+    baselineOffset,
+    durationMs: duration,
+  })
+    .then(() => {
+      return new Promise<void>((resolve) => {
+        activeTransitionTimer = setTimeout(() => {
+          activeTransitionTimer = null;
           state.isTransitioning = false;
-          resolve();
-        })
-        .catch(() => {
-          state.isTransitioning = false;
-          resolve();
-        });
-    }, duration);
-  });
+          // Disable layer backing immediately after transition is complete to restore standard vertical centering
+          invoke("set_fade_title", {
+            title: target,
+            allTitles,
+            baselineOffset,
+            durationMs: 0,
+          })
+            .then(() => resolve())
+            .catch(() => resolve());
+        }, duration);
+      });
+    })
+    .catch((err) => {
+      logger.error("Native fade transition failed, falling back to setTitle:", err);
+      state.isTransitioning = false;
+      return state.tray?.setTitle(target).catch(() => {});
+    });
 }
 
 /**
@@ -281,18 +296,52 @@ function updateMenuBarTitle(
   const oldTitle = state.latestTitle || "";
   state.latestTitle = titleToSet;
 
+  const baselineOffset = settings.menuBarVerticalAlignment === "middle" ? -1.5 : 0.5;
+
   state.pendingTitleUpdate = state.pendingTitleUpdate
     .then(() => {
       if (titleToSet === state.latestTitle) {
         if (settings.menuBarPageTransitionsEnabled && oldTitle && oldTitle !== titleToSet && state.status === "connected") {
+          // If width stabilization is enabled, build all titles to pass to the native side
+          const allTitles = (settings.menuBarPageWidthStabilizationEnabled && settings.menuBarPaginationEnabled)
+            ? buildAllMenuBarTitles(states, settings)
+            : null;
+
           return animateTitleTransition(
-            oldTitle,
             titleToSet,
-            state.tray!,
+            allTitles,
+            baselineOffset,
             settings.menuBarPageTransitionDuration || 300
           );
         } else {
-          return state.tray?.setTitle(titleToSet);
+          // Even if transitions are disabled, if width stabilization is enabled we might need to reset/stabilize the length
+          if (settings.menuBarPageWidthStabilizationEnabled && settings.menuBarPaginationEnabled && state.status === "connected") {
+            const allTitles = buildAllMenuBarTitles(states, settings);
+            return invoke("set_fade_title", {
+              title: titleToSet,
+              allTitles,
+              baselineOffset,
+              durationMs: 0, // No transition animation
+            })
+              .then(() => {})
+              .catch((err) => {
+                logger.error("Native title set with stabilization failed:", err);
+                return state.tray?.setTitle(titleToSet);
+              });
+          } else {
+            // Revert back to standard variable length
+            return invoke("set_fade_title", {
+              title: titleToSet,
+              allTitles: null,
+              baselineOffset,
+              durationMs: 0,
+            })
+              .then(() => {})
+              .catch((err) => {
+                logger.error("Native title set back to variable failed:", err);
+                return state.tray?.setTitle(titleToSet);
+              });
+          }
         }
       }
     })

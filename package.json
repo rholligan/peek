@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "preview": "vite preview",
     "tauri": "tauri",
-    "setup-icon": "tauri-liquid-icon --icon ./AppIcon.icon --output ./src-tauri/resources && sips -s format png --resampleWidth 256 ./src-tauri/resources/AppIcon.icns --out /tmp/peek-icon-full.png && sips --cropOffset 24 24 --cropToHeightWidth 208 208 /tmp/peek-icon-full.png --out ./src/assets/app-icon.png"
+    "setup-icon": "tauri-liquid-icon --icon ./AppIcon.icon --output ./src-tauri/resources && sips -s format png --resampleWidth 256 ./src-tauri/resources/AppIcon.icns --out /tmp/peek-icon-full.png && sips --cropOffset 24 24 --cropToHeightWidth 208 208 /tmp/peek-icon-full.png --out ./src/assets/app-icon.png",
+    "test": "vitest run"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -62,6 +63,7 @@
     "tauri-liquid-icon": "^1.1.0",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.54.0",
-    "vite": "^7.0.4"
+    "vite": "^7.0.4",
+    "vitest": "^4.1.10"
   }
 }

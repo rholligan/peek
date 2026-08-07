@@ -20,6 +20,7 @@ import {
   sortableKeyboardCoordinates,
   arrayMove,
 } from "@dnd-kit/sortable";
+import { Wifi, Battery } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 import { DragOverlaySensorItem } from "@/components/settings/DragOverlaySensorItem";
 import { SensorSection, listNames, sensorNamesKeyMap, type SensorListKey } from "@/components/settings/SensorSection";
@@ -42,8 +43,8 @@ import {
   syncMenuBarCycleShortcut,
   unregisterMenuBarCycleShortcut,
 } from "@/services/globalShortcut";
-import { getMenuBarPages } from "@/services/tray";
-import { moveSensorBetweenLists } from "@/shared";
+import { getMenuBarPages, buildAllMenuBarTitles } from "@/services/tray";
+import { moveSensorBetweenLists, type Settings } from "@/shared";
 
 const CONTAINER_IDS: readonly SensorListKey[] = [
   "menuBarSensors",
@@ -271,180 +272,165 @@ export function SensorsTab() {
           </CardDescription>
         </CardHeader>
         <CardBody>
-          <div className="space-y-4">
-            <Field
-              label="Enable pagination"
-              helperText="Split sensors into pages and cycle between them with a keyboard shortcut."
-              orientation="horizontal"
-            >
-              <Switch
-                checked={settings.menuBarPaginationEnabled}
-                onCheckedChange={(checked) => savePartial({ menuBarPaginationEnabled: checked })}
-                aria-label="Enable pagination"
-              />
-            </Field>
+          <div className="space-y-6">
+            
+            {/* Layout & Partitioning Group */}
+            <div className="space-y-4">
+              <h4 className="text-xs font-bold text-neutral-400 select-none flex items-center gap-1.5">
+                Layout & Partitioning
+              </h4>
+              
+              <Field
+                label="Enable page cycling"
+                helperText="Split your sensors into multiple pages when they don't fit in the menu bar."
+                orientation="horizontal"
+              >
+                <Switch
+                  checked={settings.menuBarPaginationEnabled}
+                  onCheckedChange={(checked) => savePartial({ menuBarPaginationEnabled: checked })}
+                  aria-label="Enable page cycling"
+                />
+              </Field>
 
-            <Separator />
+              {settings.menuBarPaginationEnabled && (
+                <>
+                  <Separator className="opacity-50" />
+                  <Field
+                    label="Sensors per page"
+                    helperText="Maximum number of sensors to show on each page."
+                    orientation="horizontal"
+                  >
+                    <NumberStepperInput
+                      value={settings.menuBarSensorsPerPage}
+                      onChange={(val) => savePartial({ menuBarSensorsPerPage: val })}
+                      min={1}
+                      max={10}
+                      disabled={!settings.menuBarPaginationEnabled}
+                      ariaLabel="Sensors per page"
+                    />
+                  </Field>
 
-            <Field
-              label="Sensors per page"
-              helperText="Maximum sensors shown per page. Some may be trimmed if they don't fit in the available menu bar space."
-              orientation="horizontal"
-            >
-              <NumberStepperInput
-                value={settings.menuBarSensorsPerPage}
-                onChange={(val) => savePartial({ menuBarSensorsPerPage: val })}
-                min={1}
-                max={10}
-                disabled={!settings.menuBarPaginationEnabled}
-                ariaLabel="Sensors per page"
-              />
-            </Field>
+                  <Separator className="opacity-50" />
+                  <Field
+                    label="Ignore group titles"
+                    helperText="Exclude non-sensor group titles and separators from counting toward the page limit."
+                    orientation="horizontal"
+                  >
+                    <Switch
+                      checked={settings.menuBarPaginationExcludeGroups}
+                      onCheckedChange={(checked) => savePartial({ menuBarPaginationExcludeGroups: checked })}
+                      disabled={!settings.menuBarPaginationEnabled}
+                      aria-label="Ignore group titles"
+                    />
+                  </Field>
+                </>
+              )}
+            </div>
 
-            <Separator />
+            {settings.menuBarPaginationEnabled && (
+              <>
+                <Separator />
+                
+                {/* Automation & Shortcuts Group */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-neutral-400 select-none flex items-center gap-1.5">
+                    Automation & Shortcuts
+                  </h4>
+                  
+                  <Field
+                    label="Cycle shortcut"
+                    helperText="Global keyboard shortcut to manually cycle to the next page."
+                    orientation="horizontal"
+                  >
+                    <ShortcutInput
+                      value={settings.menuBarCycleShortcut}
+                      onChange={(val) => savePartial({ menuBarCycleShortcut: val })}
+                      disabled={!settings.menuBarPaginationEnabled}
+                      onRecordingChange={(rec) => {
+                        if (rec) void unregisterMenuBarCycleShortcut();
+                        else void syncMenuBarCycleShortcut();
+                      }}
+                      validate={probeMenuBarCycleShortcut}
+                    />
+                  </Field>
 
-            <Field
-              label="Exclude group titles from page limit"
-              helperText="Exclude non-sensor group titles and separators from the pagination count."
-              orientation="horizontal"
-            >
-              <Switch
-                checked={settings.menuBarPaginationExcludeGroups}
-                onCheckedChange={(checked) => savePartial({ menuBarPaginationExcludeGroups: checked })}
-                disabled={!settings.menuBarPaginationEnabled}
-                aria-label="Exclude group titles from page limit"
-              />
-            </Field>
+                  <Separator className="opacity-50" />
+                  <Field
+                    label="Enable auto-cycle"
+                    helperText="Automatically rotate menu bar sensor pages on a timer."
+                    orientation="horizontal"
+                  >
+                    <Switch
+                      checked={settings.menuBarCycleIntervalEnabled}
+                      onCheckedChange={(checked) => savePartial({ menuBarCycleIntervalEnabled: checked })}
+                      disabled={!settings.menuBarPaginationEnabled}
+                      aria-label="Enable auto-cycle"
+                    />
+                  </Field>
 
-            <Separator />
+                  {settings.menuBarCycleIntervalEnabled && (
+                    <>
+                      <Separator className="opacity-50" />
+                      <Field
+                        label="Cycle interval"
+                        helperText="Seconds to wait before rotating to the next page."
+                        orientation="horizontal"
+                      >
+                        <NumberStepperInput
+                          value={settings.menuBarCycleIntervalSeconds}
+                          onChange={(val) => {
+                            const updates: Partial<Settings> = { menuBarCycleIntervalSeconds: val };
+                            const currentTransDuration = settings.menuBarPageTransitionDuration || 300;
+                            if (val * 1000 < currentTransDuration) {
+                              updates.menuBarPageTransitionDuration = val * 1000;
+                            }
+                            savePartial(updates);
+                          }}
+                          min={1}
+                          max={60}
+                          disabled={!settings.menuBarPaginationEnabled || !settings.menuBarCycleIntervalEnabled}
+                          ariaLabel="Cycle interval seconds"
+                        />
+                      </Field>
+                    </>
+                  )}
 
-            <Field
-              label="Cycle shortcut"
-              helperText="Global shortcut to advance to the next page."
-              orientation="horizontal"
-            >
-              <ShortcutInput
-                value={settings.menuBarCycleShortcut}
-                onChange={(val) => savePartial({ menuBarCycleShortcut: val })}
-                disabled={!settings.menuBarPaginationEnabled}
-                onRecordingChange={(rec) => {
-                  if (rec) void unregisterMenuBarCycleShortcut();
-                  else void syncMenuBarCycleShortcut();
-                }}
-                validate={probeMenuBarCycleShortcut}
-              />
-            </Field>
+                  <Separator className="opacity-50" />
+                  <Field
+                    label="Enable auto-return"
+                    helperText="Automatically return to the first page after a period of user inactivity."
+                    orientation="horizontal"
+                  >
+                    <Switch
+                      checked={settings.menuBarAutoReturnEnabled}
+                      onCheckedChange={(checked) => savePartial({ menuBarAutoReturnEnabled: checked })}
+                      disabled={!settings.menuBarPaginationEnabled}
+                      aria-label="Enable auto-return"
+                    />
+                  </Field>
 
-            <Separator />
-
-            <Field
-              label="Auto-return to first page"
-              helperText="Return to the first page when the shortcut hasn't been pressed for a while."
-              orientation="horizontal"
-            >
-              <Switch
-                checked={settings.menuBarAutoReturnEnabled}
-                onCheckedChange={(checked) => savePartial({ menuBarAutoReturnEnabled: checked })}
-                disabled={!settings.menuBarPaginationEnabled}
-                aria-label="Auto-return to first page"
-              />
-            </Field>
-
-            <Separator />
-
-            <Field
-              label="Return after"
-              helperText="Minutes to wait after the last shortcut press."
-              orientation="horizontal"
-            >
-              <NumberStepperInput
-                value={settings.menuBarAutoReturnMinutes}
-                onChange={(val) => savePartial({ menuBarAutoReturnMinutes: val })}
-                min={1}
-                max={120}
-                disabled={!settings.menuBarPaginationEnabled || !settings.menuBarAutoReturnEnabled}
-                ariaLabel="Auto-return minutes"
-              />
-            </Field>
-
-            <Separator />
-
-            <Field
-              label="Enable auto-cycle"
-              helperText="Automatically rotate menu bar sensor pages on a timer."
-              orientation="horizontal"
-            >
-              <Switch
-                checked={settings.menuBarCycleIntervalEnabled}
-                onCheckedChange={(checked) => savePartial({ menuBarCycleIntervalEnabled: checked })}
-                disabled={!settings.menuBarPaginationEnabled}
-                aria-label="Enable auto-cycle"
-              />
-            </Field>
-
-            <Separator />
-
-            <Field
-              label="Cycle interval"
-              helperText="Seconds to wait before rotating to the next page."
-              orientation="horizontal"
-            >
-              <NumberStepperInput
-                value={settings.menuBarCycleIntervalSeconds}
-                onChange={(val) => savePartial({ menuBarCycleIntervalSeconds: val })}
-                min={5}
-                max={60}
-                disabled={!settings.menuBarPaginationEnabled || !settings.menuBarCycleIntervalEnabled}
-                ariaLabel="Cycle interval seconds"
-              />
-            </Field>
-
-            <Separator />
-
-            <Field
-              label="Page transitions"
-              helperText="Briefly blank out the text before showing the next page to reduce visual distraction."
-              orientation="horizontal"
-            >
-              <Switch
-                checked={settings.menuBarPageTransitionsEnabled}
-                onCheckedChange={(checked) => savePartial({ menuBarPageTransitionsEnabled: checked })}
-                disabled={!settings.menuBarPaginationEnabled}
-                aria-label="Enable page transitions"
-              />
-            </Field>
-
-            <Separator />
-
-            <Field
-              label="Page transition duration"
-              helperText="Transition duration in milliseconds (50ms to 2000ms)."
-              orientation="horizontal"
-            >
-              <NumberStepperInput
-                value={settings.menuBarPageTransitionDuration || 300}
-                onChange={(val) => savePartial({ menuBarPageTransitionDuration: val })}
-                min={50}
-                max={2000}
-                disabled={!settings.menuBarPaginationEnabled || !settings.menuBarPageTransitionsEnabled}
-                ariaLabel="Page transition duration"
-              />
-            </Field>
-
-            <Separator />
-
-            <Field
-              label="Stabilize menu bar width"
-              helperText="Pad shorter pages with spaces to keep menu bar width 100% constant during page transitions, preventing surrounding system icons from shifting."
-              orientation="horizontal"
-            >
-              <Switch
-                checked={settings.menuBarPageWidthStabilizationEnabled}
-                onCheckedChange={(checked) => savePartial({ menuBarPageWidthStabilizationEnabled: checked })}
-                disabled={!settings.menuBarPaginationEnabled}
-                aria-label="Stabilize menu bar width"
-              />
-            </Field>
+                  {settings.menuBarAutoReturnEnabled && (
+                    <>
+                      <Separator className="opacity-50" />
+                      <Field
+                        label="Auto-return delay"
+                        helperText="Minutes of inactivity before returning to the first page."
+                        orientation="horizontal"
+                      >
+                        <NumberStepperInput
+                          value={settings.menuBarAutoReturnMinutes}
+                          onChange={(val) => savePartial({ menuBarAutoReturnMinutes: val })}
+                          min={1}
+                          max={120}
+                          disabled={!settings.menuBarPaginationEnabled || !settings.menuBarAutoReturnEnabled}
+                          ariaLabel="Auto-return minutes"
+                        />
+                      </Field>
+                    </>
+                  )}
+                </div>
+              </>
+            )}
 
             {settings.menuBarPaginationEnabled && settings.menuBarSensors.length > 0 && (
               <>
@@ -452,48 +438,50 @@ export function SensorsTab() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="font-semibold text-sm text-fg mb-1">Live Page Split Preview</h4>
-                    <p className="text-xs text-fg-muted">See exactly how your sensors and groups are partitioned into pages under current settings.</p>
+                    <p className="text-xs text-fg-muted">See a live, real-time preview of how each page will appear on your macOS menu bar.</p>
                   </div>
-                  <div className="space-y-3.5 pl-2 max-h-72 overflow-y-auto">
-                    {getMenuBarPages(settings).map((pageItems, pageIdx) => (
-                      <div key={pageIdx} className="bg-bg-panel/40 border border-border/80 rounded-xl p-3.5 space-y-2">
-                        <div className="flex justify-between items-center border-b border-border/60 pb-1.5 mb-1.5 select-none">
-                          <span className="font-bold text-xs uppercase tracking-wider text-blue-500">Page {pageIdx + 1}</span>
-                          <span className="text-3xs text-fg-muted font-semibold">{pageItems.length} elements</span>
-                        </div>
-                        {pageItems.length === 0 ? (
-                          <p className="text-xs text-fg-muted italic select-none">This page is empty.</p>
-                        ) : (
-                          <div className="space-y-1.5 pl-1.5">
-                            {pageItems.map((item, idx) => {
-                              const isGroup = item.startsWith("group:");
-                              const isPageBreak = item.startsWith("page_break:");
-                              const text = (isGroup
-                                ? (settings.menuBarSensorNames?.[item] || "Group Title")
-                                : (settings.menuBarSensorNames?.[item] || states.get(item)?.attributes?.friendly_name || item)) as string;
-                              return (
-                                <div key={idx} className="flex items-center gap-2 text-xs">
-                                  {isGroup ? (
-                                    <>
-                                      <span className="text-3xs bg-bg-muted font-semibold uppercase tracking-wider text-purple-500 px-1 py-0.5 rounded border border-border/40 font-mono select-none">TEXT</span>
-                                      <span className="font-semibold text-fg font-mono">{text}</span>
-                                    </>
-                                  ) : isPageBreak ? (
-                                    <span className="text-3xs text-fg-muted font-mono select-none">--- PAGE BREAK ---</span>
-                                  ) : (
-                                    <>
-                                      <span className="text-3xs bg-bg-muted font-semibold uppercase tracking-wider text-green-500 px-1 py-0.5 rounded border border-border/40 font-mono select-none">SENSOR</span>
-                                      <span className="text-fg-muted font-mono">{text}</span>
-                                      <span className="text-3xs text-fg-muted font-mono pl-1 select-none">({states.get(item)?.state || "—"})</span>
-                                    </>
-                                  )}
-                                </div>
-                              );
-                            })}
+                  <div className="space-y-4 pl-1 max-h-[32rem] overflow-y-auto">
+                    {getMenuBarPages(settings).map((pageItems, pageIdx) => {
+                      const pageTitles = buildAllMenuBarTitles(states, settings);
+                      const renderedTitle = pageTitles[pageIdx] || "—";
+                      
+                      return (
+                        <div key={pageIdx} className="space-y-2">
+                          <div className="flex justify-between items-center select-none pl-1">
+                            <span className="font-semibold text-xs text-blue-500">Page {pageIdx + 1}</span>
+                            <span className="text-3xs text-fg-muted font-semibold">{pageItems.length} elements</span>
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          
+                          {/* Live macOS Menu Bar Mockup */}
+                          <div className="relative w-full h-11 bg-[#1e1e1f] border border-neutral-800/80 rounded-xl overflow-hidden flex items-center justify-between px-4 select-none shadow-md">
+                            {/* Left Side: Apple Logo & App Menus */}
+                            <div className="flex items-center gap-3 text-neutral-400 font-sans text-xs">
+                              <span className="text-neutral-200 text-sm font-sans"></span>
+                              <span className="font-bold text-neutral-200 cursor-default">Peek</span>
+                              <span className="hover:text-neutral-200 transition-colors hidden sm:inline cursor-default">File</span>
+                              <span className="hover:text-neutral-200 transition-colors hidden sm:inline cursor-default">Edit</span>
+                            </div>
+                            
+                            {/* Right Side: Peek Sensor Item & System Control Icons */}
+                            <div className="flex items-center gap-3.5">
+                              {/* Our Live Active Sensor Title */}
+                              <div className="bg-white/5 border border-white/5 hover:bg-white/10 active:bg-white/20 px-2.5 py-1 rounded-md text-xs font-semibold text-neutral-100 font-mono tracking-wide shadow-sm cursor-default transition-all duration-150">
+                                {renderedTitle}
+                              </div>
+                              
+                              {/* System Control Center / Date-Time Mockups */}
+                              <div className="flex items-center gap-2.5 text-neutral-400">
+                                <Wifi className="h-3.5 w-3.5 text-neutral-400 stroke-[2.2]" />
+                                <Battery className="h-3.5 w-3.5 text-neutral-400 stroke-[2.2]" />
+                                <span className="text-[11px] font-semibold font-sans text-neutral-300 pl-0.5 tracking-wide cursor-default">
+                                  {new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </>
