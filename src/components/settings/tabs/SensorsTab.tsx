@@ -20,7 +20,6 @@ import {
   sortableKeyboardCoordinates,
   arrayMove,
 } from "@dnd-kit/sortable";
-import { Wifi, Battery } from "lucide-react";
 import { useState, useCallback, useMemo } from "react";
 import { DragOverlaySensorItem } from "@/components/settings/DragOverlaySensorItem";
 import { SensorSection, listNames, sensorNamesKeyMap, type SensorListKey } from "@/components/settings/SensorSection";
@@ -37,14 +36,12 @@ import { Separator } from "@/components/ui/Separator";
 import { ShortcutInput } from "@/components/ui/ShortcutInput";
 import { Switch } from "@/components/ui/Switch";
 import { useAutoSaveSettings } from "@/hooks/useAutoSaveField";
-import { useHaStates } from "@/hooks/useHaStates";
 import {
   probeMenuBarCycleShortcut,
   syncMenuBarCycleShortcut,
   unregisterMenuBarCycleShortcut,
 } from "@/services/globalShortcut";
-import { getMenuBarPages, buildAllMenuBarTitles } from "@/services/tray";
-import { moveSensorBetweenLists, type Settings, cn } from "@/shared";
+import { moveSensorBetweenLists, type Settings } from "@/shared";
 
 const CONTAINER_IDS: readonly SensorListKey[] = [
   "menuBarSensors",
@@ -98,7 +95,6 @@ const SECTIONS: ReadonlyArray<{
  */
 export function SensorsTab() {
   const { settings, savePartial } = useAutoSaveSettings();
-  const [states] = useHaStates();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overContainerId, setOverContainerId] = useState<SensorListKey | null>(
     null
@@ -428,79 +424,6 @@ export function SensorsTab() {
                       </Field>
                     </>
                   )}
-                </div>
-              </>
-            )}
-
-            {settings.menuBarPaginationEnabled && settings.menuBarSensors.length > 0 && (
-              <>
-                <Separator />
-                <div className="space-y-4">
-                  <div>
-                    <h4 className="font-semibold text-sm text-fg mb-1">Live Page Split Preview</h4>
-                    <p className="text-xs text-fg-muted">See a live, real-time preview of how each page will appear on your macOS menu bar.</p>
-                  </div>
-                  <div className="space-y-4 pl-1 max-h-[32rem] overflow-y-auto">
-                    {(() => {
-                      const pageTitles = buildAllMenuBarTitles(states, settings);
-                      const maxCharLength = pageTitles.length > 0 ? Math.max(...pageTitles.map((t) => t.length)) : 0;
-                      const isMiddle = settings.menuBarVerticalAlignment === "middle";
-
-                      return getMenuBarPages(settings).map((pageItems, pageIdx) => {
-                        const renderedTitle = pageTitles[pageIdx] || "—";
-                        const isWidthStabilized = settings.menuBarPageWidthStabilizationEnabled && settings.menuBarPaginationEnabled;
-                        const widthStyle = (isWidthStabilized && maxCharLength > 0)
-                          ? { minWidth: `calc(${maxCharLength}ch + 1.25rem)`, justifyContent: "flex-start" }
-                          : { justifyContent: "center" };
-
-                        return (
-                          <div key={pageIdx} className="space-y-2">
-                            <div className="flex justify-between items-center select-none pl-1">
-                              <span className="font-semibold text-xs text-blue-500">Page {pageIdx + 1}</span>
-                              <span className="text-3xs text-fg-muted font-semibold">{pageItems.length} elements</span>
-                            </div>
-                            
-                            {/* Live macOS Menu Bar Mockup */}
-                            <div className="relative w-full h-11 bg-[#1e1e1f] border border-neutral-800/80 rounded-xl overflow-hidden flex items-center justify-between px-4 select-none shadow-md">
-                              {/* Left Side: Apple Logo & App Menus */}
-                              <div className="flex items-center gap-3 text-neutral-400 font-sans text-xs">
-                                <span className="text-neutral-200 text-sm font-sans"></span>
-                                <span className="font-bold text-neutral-200 cursor-default">Peek</span>
-                                <span className="hover:text-neutral-200 transition-colors hidden sm:inline cursor-default">File</span>
-                                <span className="hover:text-neutral-200 transition-colors hidden sm:inline cursor-default">Edit</span>
-                              </div>
-                              
-                              {/* Right Side: Peek Sensor Item & System Control Icons */}
-                              <div className="flex items-center gap-3.5">
-                                {/* Our Live Active Sensor Title */}
-                                <div 
-                                  style={widthStyle}
-                                  className="bg-white/5 border border-white/5 hover:bg-white/10 active:bg-white/20 px-2.5 h-6 rounded-md text-xs font-semibold text-neutral-100 font-mono tracking-wide shadow-sm cursor-default transition-all duration-150 flex items-center"
-                                >
-                                  <span className={cn(
-                                    "transition-transform duration-150 block w-full",
-                                    isMiddle ? "translate-y-[0.75px]" : "translate-y-[-1px]",
-                                    isWidthStabilized ? "text-left" : "text-center"
-                                  )}>
-                                    {renderedTitle}
-                                  </span>
-                                </div>
-                                
-                                {/* System Control Center / Date-Time Mockups */}
-                                <div className="flex items-center gap-2.5 text-neutral-400">
-                                  <Wifi className="h-3.5 w-3.5 text-neutral-400 stroke-[2.2]" />
-                                  <Battery className="h-3.5 w-3.5 text-neutral-400 stroke-[2.2]" />
-                                  <span className="text-[11px] font-semibold font-sans text-neutral-300 pl-0.5 tracking-wide cursor-default translate-y-[0.5px]">
-                                    {new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      });
-                    })()}
-                  </div>
                 </div>
               </>
             )}

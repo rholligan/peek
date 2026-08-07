@@ -11,6 +11,7 @@ import {
   Settings,
   Info,
 } from "lucide-react";
+import { LivePreviewMockup } from "@/components/settings/LivePreviewMockup";
 import { AboutTab } from "@/components/settings/tabs/AboutTab";
 import { AppearanceTab } from "@/components/settings/tabs/AppearanceTab";
 import { ConnectionTab } from "@/components/settings/tabs/ConnectionTab";
@@ -68,6 +69,7 @@ export function SettingsTabs({ activeTabIndex, onTabChange }: SettingsTabsProps)
         {TABS.map((tab) => (
           <TabPanel key={tab.id} className="space-y-6 outline-none">
             <tab.Component />
+            {(tab.id === "sensors" || tab.id === "appearance") && <LivePreviewMockup />}
           </TabPanel>
         ))}
       </TabPanels>
