@@ -30,8 +30,13 @@ This Pull Request introduces major user-facing layout enhancements, advanced for
 * **Sleek Show/Hide Toggle:** Completely hide the preview pane to reclaim full screen space for editing, and easily restore it using the "Show Live Preview" button. State is persisted in `localStorage`.
 * **Exact macOS Native Scale & Aesthetics:** Mockup bar sits at an exact `22px` native status bar height with floating text (transparent button idle states), exact typography scales, and a full-height hover highlight.
 
+### 6. Robust Single-Instance Concurrency Protection
+* **Single-Instance Guard:** Integrates `tauri-plugin-single-instance` into the Rust backend as the first registered plugin. If a user attempts to launch a second instance (manually or via concurrent autostart mechanisms), it intercepts the launch, focuses the existing preferences window, and gracefully exits.
+* **Autostart Duplicate Cleanup:** Operates on diagnostic and surgical scripts (via AppleScript) to locate and cleanly delete duplicate/non-standard macOS Login Items while preserving the standard LaunchAgent configuration.
+
 ---
 
 ## 🧪 Quick Verification
 * Pre-build audits (TypeScript compiler, ESLint static analysis) are **100% green with zero warnings or errors**.
+* Rust backend compilation checks (`cargo check`) are **100% green and error-free**.
 * The automated test suite completed with **100% success** (7 unit tests passing, including our custom config store recovery and validation tests).
