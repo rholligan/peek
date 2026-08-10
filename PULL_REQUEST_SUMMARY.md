@@ -25,10 +25,13 @@ This Pull Request introduces major user-facing layout enhancements, advanced for
 * **Surrounding Icon Stabilization:** Option to lock the physical width of Peek to the widest page, preventing adjacent system icons from shifting.
 
 ### 5. Live macOS Menu Bar Preview Mockup
-* **Interactive Preview:** The Sensors settings tab now features a beautiful live macOS Menu Bar Mockup. It shows exactly how your active sensors paginate, format, and align in real-time, matching your system theme.
+* **Persistent "Freeze-Pane" Layout:** The live macOS Menu Bar Mockup is now persistently frozen/sticky at the bottom of both the **Sensors** and **Appearance** tabs, so you can see changes in real-time as you scroll.
+* **Draggable Splitter Resizing:** Drag the horizontal handle at the top of the preview pane to resize its height (from `100px` to `450px`) to see multiple pages simultaneously without truncation. Your height is saved in `localStorage`.
+* **Sleek Show/Hide Toggle:** Completely hide the preview pane to reclaim full screen space for editing, and easily restore it using the "Show Live Preview" button. State is persisted in `localStorage`.
+* **Exact macOS Native Scale & Aesthetics:** Mockup bar sits at an exact `22px` native status bar height with floating text (transparent button idle states), exact typography scales, and a full-height hover highlight.
 
 ---
 
 ## 🧪 Quick Verification
-* Pre-build audits (static analysis, types, linting) are **100% green**.
-* The automated test suite completed with **100% success** (7 unit tests passing).
+* Pre-build audits (TypeScript compiler, ESLint static analysis) are **100% green with zero warnings or errors**.
+* The automated test suite completed with **100% success** (7 unit tests passing, including our custom config store recovery and validation tests).
